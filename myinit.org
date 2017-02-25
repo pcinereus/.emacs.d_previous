@@ -4294,8 +4294,8 @@
 
     ;;(add-to-list 'load-path "~/.emacs.d/autocomplete")
     ;;(require 'auto-complete-config)
-    (use-package auto-complete-config
-	:ensure t)
+    ;;(use-package auto-complete-config
+    ;;	:ensure t)
     ;;(add-to-list 'ac-dictionary-directories "~/.emacs.d/autocomplete/ac-dict")
     ;;remove the following line to see if it is responsible for the freezing issue
     ;;(add-to-list 'ac-dictionary-directories "~/.emacs.d/elpa/auto-complete-20150408.1132/dict")
