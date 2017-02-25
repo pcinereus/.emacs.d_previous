@@ -25,6 +25,6 @@
 	     :ensure t)
 
 ;; load the init org file
-;;(org-babel-load-file (expand-file-name "~/.emacs.d/myinit.org"))
+(org-babel-load-file (expand-file-name "~/.emacs.d/myinit.org"))
 
 

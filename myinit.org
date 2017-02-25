@@ -1,0 +1,62 @@
+#+STARTUP: overview
+
+
+
+* Interface tweaks
+  #+BEGIN_SRC emacs-lisp
+                (setq-default inhibit-startup-message t                       ; Skip the startup screen
+                              visible-bell t
+                              ring-bell-function 'ignore
+                              truncate-lines 0                                ; Truncate lines, don't wrap                                                             ;;
+                              default-truncate-lines 0                                                                                                                                                                         ;;
+                              font-lock-use-fonts '(or (mono) (grayscale))    ; Turn on syntax hilighting                                                              ;;
+                              font-lock-use-colors '(color)                                                                                                                                                            ;;
+                              font-lock-maximum-decoration t                                                                                                                                                           ;;
+                              font-lock-maximum-size nil                                                                                                                                                               ;;
+                              font-lock-auto-fontify t                                                                                                                                                                         ;;
+                              global-font-lock-mode t                                                                                                                                                                          ;;
+                              paren-mode 'sexp                                ; Highlight parenthesis                                                                          ;;
+                              user-full-name "Murray Logan"                 ; Set name                                                                                                     ;;
+                              user-mail-address "m.logan@aims.gov.au"      ; Set e-mail address                                                            ;;
+                              query-user-mail-address nil                                                                                                                                                          ;;
+                              display-warning-minimum-level 'error            ; Turn off anoying warning messages                                          ;;
+                              delete-key-deletes-forward t                    ; Make delete key work normally                                                      ;;
+                              column-number-mode t                            ; Display line and column numbers                                                ;;
+                              line-number-mode t                                                                                                                                                                               ;;
+                              tab-width 4                                     ; Set tab stops                                                                                      ;;
+                              tab-stop-list '(4 8 12 16 20 24 28 32 36 40 44                                                                                                                           ;;
+                                                48 52 56 60 64 68 72 76 80 84)                                                                                                                     ;;
+                              toolbar-print-function 'ps-print-buffer-with-faces ; Set the print button to print nice PS                               ;;
+                              ps-line-number t                                                                                                                                                                                     ;;
+                              ps-n-up-printing 2                                                                                                                                                                               ;;
+                              ps-print-color-p nil                                                                                                                                                                         ;;
+                              display-time-day-and-date t                     ; Display the time and date on the mode line                         ;;
+                              case-fold-search t                              ; Fold case on searches                                                                      ;;
+                              buffers-menu-sort-function 'sort-buffers-menu-by-mode-then-alphabetically ; Buffers menu settings                ;;
+                              buffers-menu-grouping-function 'group-buffers-menu-by-mode-then-alphabetically                                                           ;;
+                              buffers-menu-submenus-for-groups-p t                                                                                                                                         ;;
+                              buffers-tab-filter-functions nil                ; Buffers tab is flat                                       ;;
+                              ;;frame-title-format '(buffer-file-name "%f" ("%b")) ; Make the title bar display the buffer name           ;;
+                              frame-title-format '(buffer-file-name "%b" ("%b")) ; Make the title bar display the buffer name             ;;
+                              ;;               ispell-program-name "aspell"                    ; Use aspell to spell check                             ;;
+                              ;;               initial-scratch-message nil                     ; I hate the initial scratch message!           ;;
+                              )                                                                                                                                                                                                                        ;;
+
+        (defalias 'yes-or-no-p 'y-or-n-p)
+        (set-face-attribute 'default nil                               ;;
+                                    :family "DejaVu Sans Mono" :height 80)  ;;
+        (tool-bar-mode -1)
+        ;;Ensures that the region betwen matching brackets are highlighted                                                                                                          ;;
+        (show-paren-mode 1)   
+
+        ;; Date and time in the emacs status bar
+        (setq display-time-day-and-date t
+                  display-time-24hr-format t)
+        (display-time)
+        (setq dired-dwim-target t)
+        ;;(require 'sunrise-commander)
+
+    ;; Always highlight the current row in a buffer
+    (global-hl-line-mode 1)
+
+  #+END_SRC
