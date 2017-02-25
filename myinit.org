@@ -4256,6 +4256,8 @@
   #+BEGIN_SRC emacs-lisp
     ;;To have the cursor centered vertically within a window
     ;;(add-to-list 'load-path "~/.emacs.d/elpa/centered-cursor-mode-20150420.1942")
-    (require 'centered-cursor-mode)
+    (use-package centered-cursor-mode
+    :ensure t)
+    ;;(require 'centered-cursor-mode)
     (global-centered-cursor-mode +1)
   #+END_SRC
