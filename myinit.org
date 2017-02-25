@@ -60,3 +60,23 @@
     (global-hl-line-mode 1)
 
   #+END_SRC
+* Multiple cursors
+  #+BEGIN_SRC emacs-lisp
+    (use-package multiple-cursors
+      :ensure t
+      :bind (
+             ("C-S-c C-S-c" . mc/edit-lines)
+             ("C->" . mc/mark-next-like-this)
+             ("C-<" . mc/mark-previous-like-this)
+             ("C-c C-<" . mc/mark-all-like-this)
+             ("C-." . mc/mark-more-like-this-extended)
+             ("C-c m" . mc/mark-all-in-region)
+             )
+      )
+  #+END_SRC
+
+* Browser settings
+  #+BEGIN_SRC emacs-lisp
+  (setq browse-url-generic-program (executable-find "conkeror"))
+  (setq browse-url-browser-function 'browse-url-generic)
+  #+END_SRC
