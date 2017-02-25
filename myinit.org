@@ -4264,8 +4264,8 @@
 * LaTeX
   #+BEGIN_SRC emacs-lisp
     ;;Latex++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	(use-package auctex
-	:ensure t)
+	(use-package tex
+	:ensure auctex)
     ;;(load "auctex.el" nil t t)
     ;;(load "preview-latex.el" nil t t)
     (add-hook `tex-mode-hook 'turn-on-reftex)
