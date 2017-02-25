@@ -4394,4 +4394,99 @@
 
   #+END_SRC
 
+* View documents
+  #+BEGIN_SRC emacs-lisp
+      ;; view docs
+    (fset 'doc-prev "\C-xo\C-x[\C-xo")
+    (fset 'doc-next "\C-xo\C-x]\C-xo")
+    (global-set-key (kbd "M-[") 'doc-prev)
+    (global-set-key (kbd "M-]") 'doc-next)
+
+    (add-hook 'doc-view-mode-hook 'auto-revert-mode)
+
+  #+END_SRC
+* IDO mode
+  #+BEGIN_SRC emacs-lisp
+    (use-package ido
+    :ensure t)
+    ;;(require 'ido)
+    (ido-mode t) 
+  #+END_SRC
+* Emacs Music Management
+  #+BEGIN_SRC emacs-lisp
+    ;; Emacs music management system
+    (use-package emms
+      :ensure t
+      :config
+      (prog
+       (require 'emms-player-simple)
+       (require 'emms-source-file)
+       (require 'emms-source-playlist)
+       (setq emms-player-list '(emms-player-mpg321
+                                emms-player-ogg123
+                                emms-player-mplayer))
+       (setq emms-player-mpg321-parameters '("-o" "alsa"))
+       (setq emms-info-asynchronously t
+             ;;later-do-interval 0.0001
+             ;;emms-info-functions '(emms-info-libtag)
+             emms-source-file-default-directory "~/music"
+             ;;emms-source-file-directory-tree-internal "~/music/"
+             emms-play-directory-tree "~/music"
+             ;;emms-source-file-directory-tree "~/music"
+             emms-mode-line-format " %s "
+             emms-show-format "NP: %s")
+       )
+      :bind
+      (
+       (kbd "<S-kp-0>"). emms-pause)                  ; numeric keypad 1
+       (kbd "<S-kp-subtract>") . emms-volume-lower)   ;numeric keypad -
+       (kbd "<S-kp-add>") . emms-volume-raise)        ;numeric keypad +
+       (kbd "<S-kp-multiply>") . emms-playlist-mode-go)
+      )
+  
+    )
+    ;; ;;(add-to-list 'load-path "~/.emacs.d/elisp/emms/lisp")
+    ;; (require 'emms-setup)
+    ;; ;;(emms-standard)
+    ;; ;;(emms-default-players)
+    ;; (emms-all)
+    ;; (require 'emms-player-simple)
+    ;; (require 'emms-source-file)
+    ;; (require 'emms-source-playlist)
+    ;; (setq emms-player-list '(emms-player-mpg321
+    ;;                          emms-player-ogg123
+    ;;                          emms-player-mplayer))
+    ;; (setq emms-player-mpg321-parameters '("-o" "alsa"))
+
+    ;; (setq
+    ;;  emms-info-asynchronously t
+    ;;  ;;later-do-interval 0.0001
+    ;;  ;;emms-info-functions '(emms-info-libtag)
+    ;;  emms-source-file-default-directory "~/music"
+    ;;  ;;emms-source-file-directory-tree-internal "~/music/"
+    ;;  emms-play-directory-tree "~/music"
+    ;;  ;;emms-source-file-directory-tree "~/music"
+    ;;  emms-mode-line-format " %s "
+    ;;  emms-show-format "NP: %s")
+
+    ;;(load "emms") 
+    (emms-add-directory-tree "~/music")
+    ;; ;;(emms-add-directory-tree "/mnt/MBWpublic/Shared Music/Music")
+
+    ;; (global-set-key (kbd "<S-kp-0>") 'emms-pause) ; numeric keypad 1
+    ;; (global-set-key (kbd "<S-kp-subtract>") 'emms-volume-lower) ;numeric keypad -
+    ;; (global-set-key (kbd "<S-kp-add>") 'emms-volume-raise) ;numeric keypad +
+    ;; (global-set-key (kbd "<S-kp-multiply>") 'emms-playlist-mode-go)
+    ;; ;; (global-set-key (kbd "C-c p") 'emms-pause) 
+    ;; ;; (global-set-key (kbd "C-c u") 'emms-volume-raise) 
+    ;; ;; (global-set-key (kbd "C-c d") 'emms-volume-lower) 
+    ;; ;; (global-set-key (kbd "C-c f") 'emms-show) 
+    ;; ;; (global-set-key (kbd "C-c n") 'emms-next) 
+    ;; ;; (global-set-key (kbd "C-c P") 'emms-previous) 
+    ;; ;; (global-set-key (kbd "C-c r") 'emms-random) 
+    ;; ;; (global-set-key (kbd "C-c s") 'emms-stop) 
+  #+END_SRC
+
+
+
 
