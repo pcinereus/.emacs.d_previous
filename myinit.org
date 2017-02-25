@@ -2884,9 +2884,13 @@
 ** Part 1
    #+BEGIN_SRC emacs-lisp
        (use-package ess
-       :ensure t)
+       :ensure t
+       )
 
-       ;; prevent ess from replacing the underscore with a <-
+       (use-package ess-site
+       :ensure ess)
+
+       ;; prevent ess from replacing the underscore with a <--
      (ess-toggle-underscore nil)
 
      ;;ESS for Sweave files
@@ -3079,7 +3083,9 @@
      ;;(setq inferior-R-program-name "/usr/local/R")
 
      ;;View R data frames in libreoffice
-     (require 'ess-view)
+     (use-package ess-view
+     :ensure ess)
+     ;;     (require 'ess-view)
      (setq ess-view--spreadsheet-program "/usr/local/bin/libreoffice5.0")
 
      ;; R help appears in its own frame
