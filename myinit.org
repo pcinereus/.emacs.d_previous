@@ -2883,43 +2883,43 @@
 
 ** Part 1
    #+BEGIN_SRC emacs-lisp
-       (use-package ess
+     (use-package ess
        :ensure t
        )
 
-       (use-package ess-site
+     (use-package ess-site
        :ensure ess)
 
-       ;; prevent ess from replacing the underscore with a <--
+     ;; prevent ess from replacing the underscore with a <--
      (ess-toggle-underscore nil)
 
      ;;ESS for Sweave files
      (defun Rnw-mode ()
-			(require 'ess-noweb)
-			(noweb-mode)
-			(if (fboundp 'R-mode)
-               (setq noweb-default-code-mode 'R-mode)))
-          (add-to-list 'auto-mode-alist '("\\.rnw\\'" . Rnw-mode))
-          (add-to-list 'auto-mode-alist '("\\.Snw\\'" . Rnw-mode))
-          (setq reftex-file-extensions
-               '(("Snw" "rnw" "nw" "tex" ".tex" ".ltx") ("bib" ".bib")))
-          (setq TeX-file-extensions
-               '("Snw" "rnw" "nw" "tex" "sty" "cls" "ltx" "texi" "texinfo"))
+       (require 'ess-noweb)
+       (noweb-mode)
+       (if (fboundp 'R-mode)
+           (setq noweb-default-code-mode 'R-mode)))
+     (add-to-list 'auto-mode-alist '("\\.rnw\\'" . Rnw-mode))
+     (add-to-list 'auto-mode-alist '("\\.Snw\\'" . Rnw-mode))
+     (setq reftex-file-extensions
+           '(("Snw" "rnw" "nw" "tex" ".tex" ".ltx") ("bib" ".bib")))
+     (setq TeX-file-extensions
+           '("Snw" "rnw" "nw" "tex" "sty" "cls" "ltx" "texi" "texinfo"))
 
      ;;(global-set-key [f2] 'ess-eval-line-and-step)
      (define-key ess-mode-map [f2] 'ess-eval-line-and-step)
-	 (defun start-new-r-process ()
-	  (interactive)
-	  (ess-request-a-process "" 0 0)
-	 )
-	 (global-set-key (kbd "S-<f2>") 'start-new-r-process)
+     (defun start-new-r-process ()
+       (interactive)
+       (ess-request-a-process "" 0 0)
+       )
+     (global-set-key (kbd "S-<f2>") 'start-new-r-process)
      (setq ess-ask-for-ess-directory nil)
      (setq ess-local-process-name "R")
      (setq ansi-color-for-comint-mode 'filter)
 
      (defun my-ess-start-R ()
-         (interactive)
-         (if (not (member "*R*" (mapcar (function buffer-name) (buffer-list))))
+       (interactive)
+       (if (not (member "*R*" (mapcar (function buffer-name) (buffer-list))))
            (progn
              (delete-other-windows)
              (setq w1 (selected-window))
@@ -3072,9 +3072,9 @@
                        )
                )
          (let ((r (cons (marker-position (cdr (aref noweb-chunk-vector
-													chunk-num)))
-						(marker-position (cdr (aref noweb-chunk-vector
-													(1+ chunk-num)))))))
+                                                    chunk-num)))
+                        (marker-position (cdr (aref noweb-chunk-vector
+                                                    (1+ chunk-num)))))))
            (font-lock-fontify-region (car r) (cdr r))
            t)))
      ;;End of the R highlighting stuff
@@ -3084,7 +3084,7 @@
 
      ;;View R data frames in libreoffice
      (use-package ess-view
-     :ensure ess)
+       :ensure ess)
      ;;     (require 'ess-view)
      (setq ess-view--spreadsheet-program "/usr/local/bin/libreoffice5.0")
 
@@ -3116,5 +3116,84 @@
       (ess-command "options(width=tmpwidth)\n")
       (switch-to-buffer (concat "*R view " objname "*"))
       (toggle-truncate-lines 1))
+  #+END_SRC
+* R
+  #+BEGIN_SRC emacs-lisp
+    ;;(setq load-path (append '("/home/murray/.emacs.d/site-lisp/polymode/" "/home/murray/.emacs.d/site-lisp/polymode/modes") load-path))
+    (use-package polymode
+      :ensure t)
+    ;;    (use-package poly-R
+    ;;      :ensure t)
+    ;;    (use-package poly-markdown
+    ;;      :ensure t)
+
+    ;;(require 'poly-R)
+    ;;(require 'poly-markdown)
+    ;;(require 'polymode)
+    (add-to-list 'auto-mode-alist'("\\.Rmd" . poly-markdown+r-mode))
+
+
+                                            ; Associate file types with modes
+    (add-to-list 'auto-mode-alist '("\\.\\(org\\|org_archive\\|txt\\)$" . org-mode))
+    (add-to-list 'auto-mode-alist'("\\.text" . markdown-mode))
+    (add-to-list 'auto-mode-alist'("\\.markdown" . markdown-mode))
+    (add-to-list 'auto-mode-alist'("\\.md" . markdown-mode))
+    (add-to-list 'auto-mode-alist'("\\.Rmd" . poly-markdown+r-mode))
+    (add-to-list 'auto-mode-alist'("\\.csv" . csv-mode))
+    (setq auto-mode-alist (cons '("\\.\\(pde\\|ino\\)$" . arduino-mode) auto-mode-alist))
+
+
+    (autoload 'markdown-mode "markdown-mode" "Major mode for editing Markdown files" t)
+    (add-to-list 'auto-mode-alist'("\\.text" . markdown-mode))
+    (add-to-list 'auto-mode-alist'("\\.markdown" . markdown-mode))
+    (add-to-list 'auto-mode-alist'("\\.md" . markdown-mode))
+
+    (add-hook 'markdown-mode-hook 'turn-on-orgtbl)
+
+    (defun rmarkdown-new-chunk (name)
+      "Insert a new R chunk."
+      (interactive "sChunk name: ")
+      (insert "\n```{r " name ", results='markdown'}\n")
+      (save-excursion
+        (newline)
+        (insert "```\n")
+        (previous-line)))
+    (global-set-key "\C-ci" 'rmarkdown-new-chunk)
+
+    (defun polymode-mark-or-extend-chunk ()
+      "Put point at the beginning of this chunk (assuming we are in a chunk), mark at the end. The chunk marked is the one that contains the point."
+      (interactive)
+      (re-search-forward "^\\(```\\|@\\)\\s-*$")
+      (move-beginning-of-line nil)
+      (push-mark nil t t)
+      (re-search-backward "^\\(```\\|<<\\)")
+      (move-beginning-of-line 2))
+    (global-set-key "\C-cr" 'polymode-mark-or-extend-chunk)
+  #+END_SRC
+
+
+  #+BEGIN_SRC emacs-lisp
+    ;;The following remove some markdown-mode keybindings as these
+    ;; override some of my own keybindings
+    (defun markdown-unset-tab ()
+      "markdown-mode-hook"
+      (define-key markdown-mode-map (kbd "<tab>") nil))
+    (add-hook 'markdown-mode-hook '(lambda() (markdown-unset-tab)))
+    (defun markdown-unset-M-<down> ()
+      "markdown-mode-hook"
+      (define-key markdown-mode-map (kbd "M-<down>") nil))
+    (add-hook 'markdown-mode-hook '(lambda() (markdown-unset-M-<down>)))
+    (defun markdown-unset-M-<up> ()
+      "markdown-mode-hook"
+      (define-key markdown-mode-map (kbd "M-<up>") nil))
+    (add-hook 'markdown-mode-hook '(lambda() (markdown-unset-M-<up>)))
+
+  #+END_SRC
+
+  #+BEGIN_SRC emacs-lisp
+  (setq ess-ask-for-ess-directory nil)
+(setq inferior-ess-same-window nil)
+(setq ess-help-own-frame 'one)
+
   #+END_SRC
    
