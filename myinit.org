@@ -4200,3 +4200,40 @@
   #+END_SRC
 
 
+* Themes
+  #+BEGIN_SRC emacs-lisp
+    ;; Load the leuven theme
+    (load-theme 'leuven t)
+
+    (use-package color-theme
+      :ensure t)
+
+     ;;(use-package zenburn-theme
+     ;;  :ensure t
+     ;;  :config (load-theme 'zenburn t))
+
+     ;;(use-package spacemacs-theme
+     ;;  :ensure t
+     ;;  ;:init
+     ;;  ;(load-theme 'spacemacs-dark t)
+     ;;  )
+
+    (use-package base16-theme
+      :ensure t
+      )
+
+    ;; the moe theme is only being used for the powerline
+    (use-package moe-theme
+      :ensure t)
+    ;; the following is used to lighted the yellow background
+    (setq moe-light-pure-white-background-in-terminal t)
+
+     ;;(load-theme 'base16-flat t)
+     ;;(moe-light)
+    (use-package powerline
+      :ensure t
+      :config
+      ;;(powerline-moe-theme)
+      (powerline-moe-theme)
+      )
+  #+END_SRC
