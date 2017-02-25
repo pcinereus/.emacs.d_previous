@@ -4237,3 +4237,25 @@
       (powerline-moe-theme)
       )
   #+END_SRC
+
+* Scrolling and cursors
+  #+BEGIN_SRC emacs-lisp
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    ;; Make Emacs scroll smoothly with down arrow key .   ;;
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    (setq scroll-conservatively most-positive-fixnum)    ;;
+    (setq scroll-step 1)                              ;;
+    ;;(setq scroll-conservatively 9999)                   ;;
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    ;;The following indicates that font-locking should wait a second when scrolling before applying font changes
+    ;; apparently it speeds up scrolling..
+    ;; http://tsengf.blogspot.com.au/2012/11/slow-scrolling-speed-in-emacs.html
+    ;;(setq jit-lock-defer-time 1)
+  #+END_SRC
+
+  #+BEGIN_SRC emacs-lisp
+    ;;To have the cursor centered vertically within a window
+    ;;(add-to-list 'load-path "~/.emacs.d/elpa/centered-cursor-mode-20150420.1942")
+    (require 'centered-cursor-mode)
+    (global-centered-cursor-mode +1)
+  #+END_SRC
