@@ -1903,7 +1903,7 @@
        (not (string= lang "R")))
      (setq org-confirm-babel-evaluate 'R-org-confirm-babel-evaluate)
 
-     (require 'ob-ipython)
+     ;;(require 'ob-ipython)
      (setq exec-path (append exec-path '("/opt/local/bin")))
 
      (defun ck/org-confirm-babel-evaluate (lang body)
