@@ -1820,3 +1820,2411 @@
 
   #+END_SRC
 
+
+* File associations
+  #+BEGIN_SRC emacs-lisp
+    ;;============================================================
+    ;; File associations
+    ;;============================================================
+    (setq auto-mode-alist
+          (append '(("\\.C$"     . c++-mode)
+                    ("\\.cc$"    . c++-mode)
+                    ("\\.cpp$"   . c++-mode)
+                    ("\\.cxx$"   . c++-mode)
+                    ("\\.hxx$"   . c++-mode)
+                    ("\\.h$"     . c++-mode)
+                    ("\\.hh$"    . c++-mode)
+                    ("\\.idl$"   . c++-mode)
+                    ("\\.c$"     . c-mode)
+                    ("\\.cg$"    . c-mode)    ; nvidia cg
+                    ("\\.pl$"    . perl-mode)
+                    ("\\.pm$"    . perl-mode)
+                    ("\\.java$"  . java-mode)
+                    ("\\.m$"     . octave-mode)
+                    ("\\.org$"    . org-mode)
+                    ("\\.html$"  . html-mode)
+                    ("\\.Rhtml$"  . html-mode)
+                    ("\\.htm$"   . html-mode)
+                    ("\\.xml$"   . sgml-mode)
+                    ("\\.R$"     . r-mode)
+                    ("\\.r$"     . r-mode)
+                    ("\\.log$"   . text-mode)
+                    ("\\.sty$"   . latex-mode)
+                    ("\\.tex$"   . latex-mode)
+                    ("\\.latex$" . latex-mode)
+                    ("\\.diff$"  . diff-mode)
+                    ("\\.rnw$"   . noweb-mode)
+                    ("\\.Rmd$"   . markdown-mode)
+                    ("\\.sc$"  . c++-mode)
+                    ;;("\\.emacs"  . emacs-list-mode)
+                    ("\\.patch$" . diff-mode))
+                  auto-mode-alist))
+    ;;============================================================
+        
+
+    ;; (add-hook 'markdown-mode-hook 'my-mmm-mode)
+
+    ;; (mmm-add-classes
+    ;;  '((literate-haskell-bird
+    ;;     :submode markdown-mode
+    ;;     :front "^[^>]"
+    ;;     :include-front true
+    ;;     :back "^>\\|$"
+    ;;     )
+    ;;    (literate-haskell-R
+    ;;     :submode r-mode
+    ;;     :front "```{r"
+    ;;     :front-offset (end-of-line 1)
+    ;;     :back "```"
+    ;;     :include-back nil
+    ;;     :back-offset (beginning-of-line -1)
+    ;;     )))
+
+    ;; (defun my-mmm-mode ()
+    ;;   ;; go into mmm minor mode when class is given
+    ;;   (make-local-variable 'mmm-global-mode)
+    ;;   (setq mmm-global-mode 'true))
+
+    ;; (setq mmm-submode-decoration-level 0)
+  #+END_SRC
+
+
+* Org mode
+
+** Part 1
+   #+BEGIN_SRC emacs-lisp
+     (use-package org
+       :ensure t)
+
+     (require 'org-install)
+
+     ;; the following defines which languages work with org-mode for tangling etc
+     (defun R-org-confirm-babel-evaluate (lang body)
+       (not (string= lang "R")))
+     (setq org-confirm-babel-evaluate 'R-org-confirm-babel-evaluate)
+
+     (require 'ob-ipython)
+     (setq exec-path (append exec-path '("/opt/local/bin")))
+
+     (defun ck/org-confirm-babel-evaluate (lang body)
+       (not (or (string= lang "ipython") (string= lang "R"))))
+     (setq org-confirm-babel-evaluate 'ck/org-confirm-babel-evaluate)
+
+     (org-babel-do-load-languages
+      'org-babel-load-languages
+      '((emacs-lisp . nil)
+		(ditaa . t)
+		(R . t)
+		(sh . t)
+		(latex . t)
+		(C . t)
+		(python . t)
+		(ipython . t)
+		))
+
+
+     (custom-set-variables
+      '(org-export-html-extension "html")
+      '(org-export-html-postamble-format (quote (("en" ""))))
+      '(org-export-html-preamble "")
+      '(org-export-htmlize-output-type (quote css))
+      )
+
+
+     ;;Map C-c a to org-agenda
+     (global-set-key (kbd "C-c a") 'org-agenda)
+     ;;(global-set-key (kbd "<f12>") 'org-agenda)
+     (global-set-key (kbd "<f11>") 'org-clock-goto)
+     (global-set-key (kbd "C-<f11>") 'org-clock-in)
+     (global-set-key (kbd "<f9> w") 'ml/widen)
+     (global-set-key (kbd "<f9> n") 'ml/org-todo)
+     (global-set-key (kbd "<f9> I") 'bh/punch-in)
+     (global-set-key (kbd "<f9> O") 'bh/punch-out)
+
+     ;;(global-set-key (kbd "<f9> SPC") 'bh/clock-in-last-task)
+
+     (define-key global-map (kbd "C-c c") 'org-capture)
+     ;; (setq org-capture-templates
+     ;;       '(("t" "todo" entry (file+headline "~/Dropbox/org/todo.org" "Tasks")
+     ;;          "* TODO [#A] %?\nSCHEDULED: %(org-insert-time-stamp (org-read-date nil t \"+0d\"))\n")))
+     ;; Capture templates for: TODO tasks, Notes, appointments, phone calls, meetings, and org-protocol
+     ;; http://orgmode.org/manual/Capture-templates.html
+     ;; %? prompt for input
+     ;; \n newline
+     ;; \t tab
+     ;; %U inactive timestamp
+     ;; %a link to item captured from
+
+     ;; Some convienience functions that are mapped to user defined keys functions
+     (defun ml/widen () ;; <f9> w
+       (interactive)
+       (if (equal major-mode 'org-agenda-mode)
+           (progn
+             (org-agenda-remove-restriction-lock)
+             (when org-agenda-sticky
+               (org-agenda-redo)))
+         (widen)))
+     (defvar bh/hide-scheduled-and-waiting-next-tasks t)
+
+     (add-hook 'org-agenda-mode-hook
+               '(lambda () (org-defkey org-agenda-mode-map "W" (lambda () (interactive) (setq ml/hide-scheduled-and-waiting-next-tasks t) (ml/widen))))
+               'append)
+
+     (defun ml/narrow-to-org-subtree ()
+       (widen)
+       (org-narrow-to-subtree)
+       (save-restriction
+         (org-agenda-set-restriction-lock)))
+
+     (defun ml/org-todo (arg) ;; F9 n
+       (interactive "p")
+       (if (equal arg 4)
+           (save-restriction
+             (ml/narrow-to-org-subtree)
+             (org-show-todo-tree nil))
+         (ml/narrow-to-org-subtree)
+         (org-show-todo-tree nil)))
+
+     ;;============================================================
+     ;; Diary mode - fancy display
+     ;;============================================================
+     ;;Here is some code to make your calendar and diary display fancier:
+     (setq view-diary-entries-initially t
+           mark-diary-entries-in-calendar t
+           number-of-diary-entries 7)
+     (add-hook 'diary-display-hook 'fancy-diary-display)
+     (add-hook 'today-visible-calendar-hook 'calendar-mark-today)
+     (setq diary-file "~/Dropbox/org/diary")
+
+     (setq org-agenda-include-diary t)
+     (setq org-agenda-diary-file "~/git/org/diary.org")
+
+     (setq org-agenda-insert-diary-extract-time t)
+
+
+     ;; Define the list of org files that are in the agenda search path
+     (setq org-agenda-files (list "~/Dropbox/org/work.org"
+	                              "~/Dropbox/org/gcal.org"
+                                  "~/Dropbox/org/gtd.org"
+                                  "~/Dropbox/org/stats.org"
+                                  "~/Dropbox/org/AIMS.org"
+                                  "~/Dropbox/org/todo.org"
+                                  "~/Dropbox/org/book.org"
+                                  "~/Dropbox/org/sandpit.org"
+                                  "~/Dropbox/org/webdev.org"
+                                  "~/Dropbox/org/magneticIsland.org"
+                                  "~/Dropbox/org/home.org"
+                                  "~/Dropbox/org/refile.org"))
+
+     (setq
+      ;;org-indent-mode t                      ;; ensure indentation - messes with capture mode
+      org-hide-leading-stars t               ;; remove leading stars
+      org-startup-align-all-tables t         ;; align all tables
+      org-startup-with-inline-images t       ;; display inline images
+      ;;org-startup-with-latex-preview t       ;; preview LaTeX fragments - seems to break agenda
+      org-hidden-keywords '(title author email date)  ;; hide these in header
+      org-hide-block-startup t
+      org-export-default-language "en"
+      ;;org-columns-default-format "%25ITEM %TODO %10SCHEDULED %3PRIORITY %TAGS"
+      org-columns-default-format "%25ITEM %TODO %TAGS %CLOCKSUM %DEADLINE %10SCHEDULED %3PRIORITY"
+      )
+     (setq org-export-html-style
+           "<link rel=\"stylesheet\" type=\"text/css\" href=\"style.css\" />")
+
+     ;; Start the weekly agenda on Monday
+     (setq org-agenda-start-on-weekday 1)
+
+     ;; Enable display of the time grid so we can see the marker for the current time
+     (setq org-agenda-time-grid (quote ((daily today remove-match)
+										#("----------------" 0 16 (org-heading t))
+										(0700 0900 1100 1300 1500 1700 1900))))
+
+     ;; Display tags farther right
+     (setq org-agenda-tags-column -80)
+
+     ;; org capture
+     (setq org-directory "~/Dropbox/org/")
+     (setq org-default-notes-file (concat org-directory "refile.org"))
+
+     (setq org-todo-keywords  ;; SHIFT arrow
+           (quote ((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d)")
+                   (sequence "WAITING(w@/!)" "HOLD(h@/!)" "|" "CANCELLED(c@/!)" "PHONE" "MEETING"))))
+
+     (setq org-capture-templates
+           (quote (("a" "Appointment" entry (file+datetree "~/Dropbox/org/gcal.org" )
+					"* %?\n\n\%^T\n\n:PROPERTIES:\n\n:END:\n\n")
+				   ("t" "todo" entry (file org-default-notes-file "Tasks")
+					"* TODO %?\t%^G\n\t%U\n\t%a\n" :clock-in t :clock-resume t)
+                   ("r" "respond" entry (file org-default-notes-file)
+					"* NEXT Respond to %:from on %:subject\nSCHEDULED: %t\n%U\n%a\n" :clock-in t :clock-resume t :immediate-finish t)
+                   ("n" "note" entry (file org-default-notes-file)
+					"* %? :NOTE:\n\t%U\n\t%a\n" :clock-in t :clock-resume t)
+                   ("j" "Journal" entry (file+datetree "~/Dropbox/org/diary.org")
+					"* %?\n\t%U\n" :clock-in t :clock-resume t)
+                   ("w" "org-protocol" entry (file org-default-notes-file)
+					"* TODO Review %c\n%U\n" :immediate-finish t)
+                   ("m" "Meeting" entry (file org-default-notes-file)
+					"* MEETING with %? :MEETING:\n%U" :clock-in t :clock-resume t)
+                   ("p" "Phone call" entry (file org-default-notes-file)
+					"* PHONE %? :PHONE:\n%U" :clock-in t :clock-resume t)
+                   ("h" "Habit" entry (file org-default-notes-file)
+					"* NEXT %?\n%U\n%a\nSCHEDULED: %(format-time-string \"%<<%Y-%m-%d %a .+1d/3d>>\")\n:PROPERTIES:\n:STYLE: habit\n:REPEAT_TO_STATE: NEXT\n:END:\n"))))
+
+
+                                             ; Targets include this file and any file contributing to the agenda - up to 9 levels deep
+     (setq org-refile-targets (quote ((nil :maxlevel . 9)
+                                      (org-agenda-files :maxlevel . 9))))
+
+     ;; Remove empty LOGBOOK drawers on clock out - these occur when a capture note takes less than
+     ;; minute to create
+     (defun bh/remove-empty-drawer-on-clock-out ()
+       (interactive)
+       (save-excursion
+         (beginning-of-line 0)
+         (org-remove-empty-drawer-at "LOGBOOK" (point))))
+
+     (add-hook 'org-clock-out-hook 'bh/remove-empty-drawer-on-clock-out 'append)
+
+
+                                             ; Use full outline paths for refile targets - we file directly with IDO
+     (setq org-refile-use-outline-path t)
+
+                                             ; Targets complete directly with IDO
+     (setq org-outline-path-complete-in-steps nil)
+
+                                             ; Allow refile to create parent tasks with confirmation
+     (setq org-refile-allow-creating-parent-nodes (quote confirm))
+
+                                             ; Use IDO for both buffer and file completion and ido-everywhere to t
+     (setq org-completion-use-ido t)
+     (setq ido-everywhere t)
+     (setq ido-max-directory-size 100000)
+     (ido-mode (quote both))
+                                             ; Use the current window when visiting files and buffers with ido
+     (setq ido-default-file-method 'selected-window)
+     (setq ido-default-buffer-method 'selected-window)
+                                             ; Use the current window for indirect buffer display
+     (setq org-indirect-buffer-display 'current-window)
+
+
+
+                                             ; Use IDO for both buffer and file completion and ido-everywhere to t
+     (setq org-completion-use-ido t)
+     (setq ido-everywhere t)
+     (setq ido-max-directory-size 100000)
+     (ido-mode (quote both))
+                                             ; Use the current window when visiting files and buffers with ido
+     (setq ido-default-file-method 'selected-window)
+     (setq ido-default-buffer-method 'selected-window)
+                                             ; Use the current window for indirect buffer display
+     (setq org-indirect-buffer-display 'current-window)
+
+
+     ;;;; Refile settings
+                                             ; Exclude DONE state tasks from refile targets
+     (defun bh/verify-refile-target ()
+       "Exclude todo keywords with a done state from refile targets"
+       (not (member (nth 2 (org-heading-components)) org-done-keywords)))
+
+     (setq org-refile-target-verify-function 'bh/verify-refile-target)
+
+     (setq org-agenda-dim-blocked-tasks nil)
+
+     ;; Compact the block agenda view
+                                             ;(setq org-agenda-compact-blocks t)
+
+     ;; Custom agenda command definitions
+     (setq org-agenda-custom-commands
+           (quote (
+                               ("n" "Agenda and all TODOs"
+								((agenda "" nil)
+                                     (alltodo "" nil))
+								nil)
+                               ("N" "Notes" tags "NOTE"
+					((org-agenda-overriding-header "Notes")
+                     (org-tags-match-list-sublevels t)))
+                   ("h" "Habits" tags-todo "STYLE=\"habit\""
+					((org-agenda-overriding-header "Habits")
+                     (org-agenda-sorting-strategy
+                      '(todo-state-down effort-up category-keep))))
+                   (" " "Agenda"
+					((agenda "" nil)
+                     (tags "REFILE"
+                           ((org-agenda-overriding-header "Tasks to Refile")
+							(org-tags-match-list-sublevels nil)))
+                     (tags-todo "-CANCELLED/!"
+								((org-agenda-overriding-header "Stuck Projects")
+                                 (org-agenda-skip-function 'bh/skip-non-stuck-projects)
+                                 (org-agenda-sorting-strategy
+                                  '(category-keep))))
+                     (tags-todo "-HOLD-CANCELLED/!"
+								((org-agenda-overriding-header "Projects")
+                                 (org-agenda-skip-function 'bh/skip-non-projects)
+                                 (org-tags-match-list-sublevels 'indented)
+                                 (org-agenda-sorting-strategy
+                                  '(category-keep))))
+                     (tags-todo "-CANCELLED/!NEXT"
+								((org-agenda-overriding-header (concat "Project Next Tasks"
+                                                                       (if bh/hide-scheduled-and-waiting-next-tasks
+                                                                           ""
+                                                                         " (including WAITING and SCHEDULED tasks)")))
+                                 (org-agenda-skip-function 'bh/skip-projects-and-habits-and-single-tasks)
+                                 (org-tags-match-list-sublevels t)
+                                 (org-agenda-todo-ignore-scheduled bh/hide-scheduled-and-waiting-next-tasks)
+                                 (org-agenda-todo-ignore-deadlines bh/hide-scheduled-and-waiting-next-tasks)
+                                 (org-agenda-todo-ignore-with-date bh/hide-scheduled-and-waiting-next-tasks)
+                                 (org-agenda-sorting-strategy
+                                  '(todo-state-down effort-up category-keep))))
+                     (tags-todo "-REFILE-CANCELLED-WAITING-HOLD/!"
+								((org-agenda-overriding-header (concat "Project Subtasks"
+                                                                       (if bh/hide-scheduled-and-waiting-next-tasks
+                                                                           ""
+                                                                         " (including WAITING and SCHEDULED tasks)")))
+                                 (org-agenda-skip-function 'bh/skip-non-project-tasks)
+                                 (org-agenda-todo-ignore-scheduled bh/hide-scheduled-and-waiting-next-tasks)
+                                 (org-agenda-todo-ignore-deadlines bh/hide-scheduled-and-waiting-next-tasks)
+                                 (org-agenda-todo-ignore-with-date bh/hide-scheduled-and-waiting-next-tasks)
+                                 (org-agenda-sorting-strategy
+                                  '(category-keep))))
+                     (tags-todo "-REFILE-CANCELLED-WAITING-HOLD/!"
+								((org-agenda-overriding-header (concat "Standalone Tasks"
+                                                                       (if bh/hide-scheduled-and-waiting-next-tasks
+                                                                           ""
+                                                                         " (including WAITING and SCHEDULED tasks)")))
+                                 (org-agenda-skip-function 'bh/skip-project-tasks)
+                                 (org-agenda-todo-ignore-scheduled bh/hide-scheduled-and-waiting-next-tasks)
+                                 (org-agenda-todo-ignore-deadlines bh/hide-scheduled-and-waiting-next-tasks)
+                                 (org-agenda-todo-ignore-with-date bh/hide-scheduled-and-waiting-next-tasks)
+                                 (org-agenda-sorting-strategy
+                                  '(category-keep))))
+                     (tags-todo "-CANCELLED+WAITING|HOLD/!"
+								((org-agenda-overriding-header (concat "Waiting and Postponed Tasks"
+                                                                       (if bh/hide-scheduled-and-waiting-next-tasks
+                                                                           ""
+                                                                         " (including WAITING and SCHEDULED tasks)")))
+                                 (org-agenda-skip-function 'bh/skip-non-tasks)
+                                 (org-tags-match-list-sublevels nil)
+                                 (org-agenda-todo-ignore-scheduled bh/hide-scheduled-and-waiting-next-tasks)
+                                 (org-agenda-todo-ignore-deadlines bh/hide-scheduled-and-waiting-next-tasks)))
+                     (tags "-REFILE/"
+                           ((org-agenda-overriding-header "Tasks to Archive")
+							(org-agenda-skip-function 'bh/skip-non-archivable-tasks)
+							(org-tags-match-list-sublevels nil))))
+					nil))))
+
+     (defun bh/org-auto-exclude-function (tag)
+       "Automatic task exclusion in the agenda with / RET"
+       (and (cond
+             ((string= tag "hold")
+              t)
+             ((string= tag "farm")
+              t))
+			(concat "-" tag)))
+
+     (setq org-agenda-auto-exclude-function 'bh/org-auto-exclude-function)
+
+
+     ;; Resume clocking task when emacs is restarted
+     (org-clock-persistence-insinuate)
+
+
+     ;;
+     ;; Show lot of clocking history so it's easy to pick items off the C-F11 list
+     (setq org-clock-history-length 23)
+     ;; Resume clocking task on clock-in if the clock is open
+     (setq org-clock-in-resume t)
+     ;; Change tasks to NEXT when clocking in
+     (setq org-clock-in-switch-to-state 'bh/clock-in-to-next)
+     ;; Separate drawers for clocking and logs
+     (setq org-drawers (quote ("PROPERTIES" "LOGBOOK")))
+     ;; Save clock data and state changes and notes in the LOGBOOK drawer
+     (setq org-clock-into-drawer t)
+     ;; Sometimes I change tasks I'm clocking quickly - this removes clocked tasks with 0:00 duration
+     (setq org-clock-out-remove-zero-time-clocks t)
+     ;; Clock out when moving task to a done state
+     (setq org-clock-out-when-done t)
+     ;; Save the running clock and all clock history when exiting Emacs, load it on startup
+     (setq org-clock-persist t)
+     ;; Do not prompt to resume an active clock
+     (setq org-clock-persist-query-resume nil)
+     ;; Enable auto clock resolution for finding open clocks
+     (setq org-clock-auto-clock-resolution (quote when-no-clock-is-running))
+     ;; Include current clocking task in clock reports
+     (setq org-clock-report-include-clocking-task t)
+
+
+     ;; Keep tasks with dates on the global todo lists
+     (setq org-agenda-todo-ignore-with-date nil)
+
+     ;; Keep tasks with deadlines on the global todo lists
+     (setq org-agenda-todo-ignore-deadlines nil)
+
+     ;; Keep tasks with scheduled dates on the global todo lists
+     (setq org-agenda-todo-ignore-scheduled nil)
+
+     ;; Keep tasks with timestamps on the global todo lists
+     (setq org-agenda-todo-ignore-timestamp nil)
+
+     ;; Remove completed deadline tasks from the agenda view
+     (setq org-agenda-skip-deadline-if-done t)
+
+     ;; Remove completed scheduled tasks from the agenda view
+     (setq org-agenda-skip-scheduled-if-done t)
+
+     ;; Remove completed items from search results
+     (setq org-agenda-skip-timestamp-if-done t)
+
+
+
+     (setq bh/keep-clock-running nil)
+
+     (defun bh/clock-in-to-next (kw)
+       "Switch a task from TODO to NEXT when clocking in.
+     Skips capture tasks, projects, and subprojects.
+     Switch projects and subprojects from NEXT back to TODO"
+       (when (not (and (boundp 'org-capture-mode) org-capture-mode))
+         (cond
+          ((and (member (org-get-todo-state) (list "TODO"))
+				(bh/is-task-p))
+           "NEXT")
+          ((and (member (org-get-todo-state) (list "NEXT"))
+				(bh/is-project-p))
+           "TODO"))))
+
+     (defun bh/find-project-task ()
+       "Move point to the parent (project) task if any"
+       (save-restriction
+         (widen)
+         (let ((parent-task (save-excursion (org-back-to-heading 'invisible-ok) (point))))
+           (while (org-up-heading-safe)
+             (when (member (nth 2 (org-heading-components)) org-todo-keywords-1)
+               (setq parent-task (point))))
+           (goto-char parent-task)
+           parent-task)))
+
+     (defun bh/punch-in (arg)
+       "Start continuous clocking and set the default task to the
+     selected task.  If no task is selected set the Organization task
+     as the default task."
+       (interactive "p")
+       (setq bh/keep-clock-running t)
+       (if (equal major-mode 'org-agenda-mode)
+           ;;
+           ;; We're in the agenda
+           ;;
+           (let* ((marker (org-get-at-bol 'org-hd-marker))
+                  (tags (org-with-point-at marker (org-get-tags-at))))
+             (if (and (eq arg 4) tags)
+                 (org-agenda-clock-in '(16))
+               (bh/clock-in-organization-task-as-default)))
+         ;;
+         ;; We are not in the agenda
+         ;;
+         (save-restriction
+           (widen)
+           ; Find the tags on the current task
+           (if (and (equal major-mode 'org-mode) (not (org-before-first-heading-p)) (eq arg 4))
+               (org-clock-in '(16))
+             (bh/clock-in-organization-task-as-default)))))
+
+     (defun bh/punch-out ()
+       (interactive)
+       (setq bh/keep-clock-running nil)
+       (when (org-clock-is-active)
+         (org-clock-out))
+       (org-agenda-remove-restriction-lock))
+
+     (defun bh/clock-in-default-task ()
+       (save-excursion
+         (org-with-point-at org-clock-default-task
+           (org-clock-in))))
+
+     (defun bh/clock-in-parent-task ()
+       "Move point to the parent (project) task if any and clock in"
+       (let ((parent-task))
+         (save-excursion
+           (save-restriction
+             (widen)
+             (while (and (not parent-task) (org-up-heading-safe))
+               (when (member (nth 2 (org-heading-components)) org-todo-keywords-1)
+                 (setq parent-task (point))))
+             (if parent-task
+                 (org-with-point-at parent-task
+                   (org-clock-in))
+               (when bh/keep-clock-running
+                 (bh/clock-in-default-task)))))))
+
+     (defvar bh/organization-task-id "eb155a82-92b2-4f25-a3c6-0304591af2f9")
+
+     (defun bh/clock-in-organization-task-as-default ()
+       (interactive)
+       (org-with-point-at (org-id-find bh/organization-task-id 'marker)
+         (org-clock-in '(16))))
+
+     (defun bh/clock-out-maybe ()
+       (when (and bh/keep-clock-running
+                  (not org-clock-clocking-in)
+                  (marker-buffer org-clock-default-task)
+                  (not org-clock-resolving-clocks-due-to-idleness))
+         (bh/clock-in-parent-task)))
+
+     (add-hook 'org-clock-out-hook 'bh/clock-out-maybe 'append)
+
+     (require 'org-id)
+
+     (defun bh/clock-in-task-by-id (id)
+       "Clock in a task by id"
+       (org-with-point-at (org-id-find id 'marker)
+         (org-clock-in nil)))
+
+     (defun bh/clock-in-last-task (arg)
+       "Clock in the interrupted task if there is one
+     Skip the default task and get the next one.
+     A prefix arg forces clock in of the default task."
+       (interactive "p")
+       (let ((clock-in-to-task
+              (cond
+               ((eq arg 4) org-clock-default-task)
+               ((and (org-clock-is-active)
+                     (equal org-clock-default-task (cadr org-clock-history)))
+				(caddr org-clock-history))
+               ((org-clock-is-active) (cadr org-clock-history))
+               ((equal org-clock-default-task (car org-clock-history)) (cadr org-clock-history))
+               (t (car org-clock-history)))))
+         (widen)
+         (org-with-point-at clock-in-to-task
+           (org-clock-in nil))))
+
+     (setq org-time-stamp-rounding-minutes (quote (1 1)))
+
+     (setq org-agenda-clock-consistency-checks
+           (quote (:max-duration "4:00"
+                   :min-duration 0
+                   :max-gap 0
+                   :gap-ok-around ("4:00"))))
+
+     (defun bh/is-task-p ()
+       "Any task with a todo keyword and no subtask"
+       (save-restriction
+         (widen)
+         (let ((has-subtask)
+               (subtree-end (save-excursion (org-end-of-subtree t)))
+               (is-a-task (member (nth 2 (org-heading-components)) org-todo-keywords-1)))
+           (save-excursion
+             (forward-line 1)
+             (while (and (not has-subtask)
+                         (< (point) subtree-end)
+                         (re-search-forward "^\*+ " subtree-end t))
+               (when (member (org-get-todo-state) org-todo-keywords-1)
+                 (setq has-subtask t))))
+           (and is-a-task (not has-subtask)))))
+
+
+     (defvar bh/hide-scheduled-and-waiting-next-tasks t)
+
+
+     (setq org-archive-mark-done nil)
+     (setq org-archive-location "%s_archive::* Archived Tasks")
+
+     (defun bh/skip-non-archivable-tasks ()
+       "Skip trees that are not available for archiving"
+       (save-restriction
+         (widen)
+         ;; Consider only tasks with done todo headings as archivable candidates
+         (let ((next-headline (save-excursion (or (outline-next-heading) (point-max))))
+               (subtree-end (save-excursion (org-end-of-subtree t))))
+           (if (member (org-get-todo-state) org-todo-keywords-1)
+               (if (member (org-get-todo-state) org-done-keywords)
+                   (let* ((daynr (string-to-int (format-time-string "%d" (current-time))))
+                          (a-month-ago (* 60 60 24 (+ daynr 1)))
+                          (last-month (format-time-string "%Y-%m-" (time-subtract (current-time) (seconds-to-time a-month-ago))))
+                          (this-month (format-time-string "%Y-%m-" (current-time)))
+                          (subtree-is-current (save-excursion
+												(forward-line 1)
+												(and (< (point) subtree-end)
+                                                     (re-search-forward (concat last-month "\\|" this-month) subtree-end t)))))
+                     (if subtree-is-current
+                         subtree-end ; Has a date in this month or last month, skip it
+                       nil))  ; available to archive
+                 (or subtree-end (point-max)))
+             next-headline))))
+
+     (setq org-alphabetical-lists t)
+
+
+
+     (setq 
+      org-agenda-clockreport-parameter-plist '(:link t :maxlevel 5 :step week :fileskip0 t :compact nil :narrow 80 :formula % "$6='(org-clock-time% @2$2 $2..$5);%.1f")
+      org-time-clocksum-format '(:hours "%d" :require-hours t :minutes ":%02d" :require-minutes t)
+      org-agenda-start-with-clockreport-mode t
+      org-agenda-start-with-log-mode t
+      ;;org-agenda-start-with-follow-mode f
+     )
+
+
+     (defun bh/narrow-to-org-subtree ()
+       (widen)
+       (org-narrow-to-subtree)
+       (save-restriction
+         (org-agenda-set-restriction-lock)))
+
+
+     (global-set-key (kbd "<f5>") 'bh/org-todo)
+
+     (defun bh/org-todo (arg)
+       (interactive "p")
+       (if (equal arg 4)
+           (save-restriction
+             (bh/narrow-to-org-subtree)
+             (org-show-todo-tree nil))
+         (bh/narrow-to-org-subtree)
+         (org-show-todo-tree nil)))
+
+     (global-set-key (kbd "<S-f5>") 'bh/widen)
+
+     (defun bh/widen ()
+       (interactive)
+       (if (equal major-mode 'org-agenda-mode)
+           (progn
+             (org-agenda-remove-restriction-lock)
+             (when org-agenda-sticky
+               (org-agenda-redo)))
+         (widen)))
+
+     (add-hook 'org-agenda-mode-hook
+               '(lambda () (org-defkey org-agenda-mode-map "W" (lambda () (interactive) (setq bh/hide-scheduled-and-waiting-next-tasks t) (bh/widen))))
+               'append)
+
+
+
+     ;; Include agenda archive files when searching for things
+     (setq org-agenda-text-search-extra-files (quote (agenda-archives)))
+
+     ;; Show all future entries for repeating tasks
+     (setq org-agenda-repeating-timestamp-show-all t)
+
+     ;; Show all agenda dates - even if they are empty
+     (setq org-agenda-show-all-dates t)
+
+     ;; Sorting order for tasks on the agenda
+     (setq org-agenda-sorting-strategy
+           (quote ((agenda habit-down time-up user-defined-up effort-up category-keep)
+                   (todo category-up effort-up)
+                   (tags category-up effort-up)
+                   (search category-up))))
+
+
+
+
+     ;; Org bibligraphy
+     (defun org-mode-reftex-search ()
+       ;;jump to the notes for the paper pointed to at from reftex search
+       (interactive)
+       (org-open-link-from-string (format "[[notes:%s]]" (reftex-citation t))))
+
+
+     (defun org-mode-reftex-setup ()
+       (load-library "reftex")
+       ;;(and (buffer-file-name) (file-exists-p (buffer-file-name))
+       (and (buffer-file-name) (string-equal (buffer-file-name) "/home/murray/Dropbox/org/references.org")
+			(progn
+                      ;;enable auto-revert-mode to update reftex when bibtex file changes on disk
+                      (global-auto-revert-mode t)
+                      (reftex-parse-all)
+                      ;;add a custom reftex cite format to insert links
+                      (reftex-set-cite-format
+                       '((?b . "[[bib:%l][%l-bib]]")
+                             (?n . "[[notes:%l][%l-notes]]")
+                             (?p . "[[papers:%l][%l-paper]]")
+                             (?l . "[[tutorials:%l][%l-paper]]")
+                             (?r . "** %2a (%y). %t\n\t:PROPERTIES:\n\t:Custom_ID: %l\n\t:END:\n\t[[bib:%l][%l-bib]]\n\t[[reports:%l][%l-report]]")
+                             (?t . "%t")
+                             (?h . "** %2a (%y). %t\n\t:PROPERTIES:\n\t:Custom_ID: %l\n\t:END:\n\t[[bib:%l][%l-bib]]\n\t[[papers:%l][%l-paper]]")
+                             ))))
+       (define-key org-mode-map (kbd "C-c )") 'reftex-citation)
+       (define-key org-mode-map (kbd "C-c (") 'org-mode-reftex-search))
+
+     (add-hook 'org-mode-hook 'org-mode-reftex-setup)
+     ;(with-eval-after-load "~/Dropbox/org/references.org" 'org-mode-reftex-setup)
+
+
+     (setq org-link-abbrev-alist
+           '(("bib" . "~/Dropbox/Work/Resources/References/References.bib::%s")
+                     ("notes" . "~/Dropbox/org/references.org::#%s")
+                     ("reports" . "~/Dropbox/Work/Resources/References/Reports/%s.pdf")
+                     ("papers" . "~/Dropbox/Work/Resources/References/Papers/%s.pdf")
+                     ("tutorials" . "~/Dropbox/Work/Resources/References/Tutorials/%s.pdf")
+                     ))
+
+     ;; PDFs visited in Org-mode are opened in Evince (and not in the default choice) http://stackoverflow.com/a/8836108/789593
+     (add-hook 'org-mode-hook
+           '(lambda ()
+              (delete '("\\.pdf\\'" . default) org-file-apps)
+              (add-to-list 'org-file-apps '("\\.pdf\\'" . org-pdfview-open)))
+              ;;(add-to-list 'org-file-apps '("\\.pdf\\'" . "evince %s")))
+                      )
+
+
+
+
+     (defun bh/is-project-p ()
+       "Any task with a todo keyword subtask"
+       (save-restriction
+         (widen)
+         (let ((has-subtask)
+               (subtree-end (save-excursion (org-end-of-subtree t)))
+               (is-a-task (member (nth 2 (org-heading-components)) org-todo-keywords-1)))
+           (save-excursion
+             (forward-line 1)
+             (while (and (not has-subtask)
+                         (< (point) subtree-end)
+                         (re-search-forward "^\*+ " subtree-end t))
+               (when (member (org-get-todo-state) org-todo-keywords-1)
+                 (setq has-subtask t))))
+           (and is-a-task has-subtask))))
+
+     (defun bh/is-project-subtree-p ()
+       "Any task with a todo keyword that is in a project subtree.
+     Callers of this function already widen the buffer view."
+       (let ((task (save-excursion (org-back-to-heading 'invisible-ok)
+                                   (point))))
+         (save-excursion
+           (bh/find-project-task)
+           (if (equal (point) task)
+               nil
+             t))))
+
+     (defun bh/is-task-p ()
+       "Any task with a todo keyword and no subtask"
+       (save-restriction
+         (widen)
+         (let ((has-subtask)
+               (subtree-end (save-excursion (org-end-of-subtree t)))
+               (is-a-task (member (nth 2 (org-heading-components)) org-todo-keywords-1)))
+           (save-excursion
+             (forward-line 1)
+             (while (and (not has-subtask)
+                         (< (point) subtree-end)
+                         (re-search-forward "^\*+ " subtree-end t))
+               (when (member (org-get-todo-state) org-todo-keywords-1)
+                 (setq has-subtask t))))
+           (and is-a-task (not has-subtask)))))
+
+
+     (defun bh/is-subproject-p ()
+       "Any task which is a subtask of another project"
+       (let ((is-subproject)
+             (is-a-task (member (nth 2 (org-heading-components)) org-todo-keywords-1)))
+         (save-excursion
+           (while (and (not is-subproject) (org-up-heading-safe))
+             (when (member (nth 2 (org-heading-components)) org-todo-keywords-1)
+               (setq is-subproject t))))
+         (and is-a-task is-subproject)))
+
+     (defun bh/list-sublevels-for-projects-indented ()
+       "Set org-tags-match-list-sublevels so when restricted to a subtree we list all subtasks.
+       This is normally used by skipping functions where this variable is already local to the agenda."
+       (if (marker-buffer org-agenda-restrict-begin)
+           (setq org-tags-match-list-sublevels 'indented)
+         (setq org-tags-match-list-sublevels nil))
+       nil)
+
+     (defun bh/list-sublevels-for-projects ()
+       "Set org-tags-match-list-sublevels so when restricted to a subtree we list all subtasks.
+       This is normally used by skipping functions where this variable is already local to the agenda."
+       (if (marker-buffer org-agenda-restrict-begin)
+           (setq org-tags-match-list-sublevels t)
+         (setq org-tags-match-list-sublevels nil))
+       nil)
+
+     (defvar bh/hide-scheduled-and-waiting-next-tasks t)
+
+     (defun bh/toggle-next-task-display ()
+       (interactive)
+       (setq bh/hide-scheduled-and-waiting-next-tasks (not bh/hide-scheduled-and-waiting-next-tasks))
+       (when  (equal major-mode 'org-agenda-mode)
+         (org-agenda-redo))
+       (message "%s WAITING and SCHEDULED NEXT Tasks" (if bh/hide-scheduled-and-waiting-next-tasks "Hide" "Show")))
+
+     (defun bh/skip-stuck-projects ()
+       "Skip trees that are not stuck projects"
+       (save-restriction
+         (widen)
+         (let ((next-headline (save-excursion (or (outline-next-heading) (point-max)))))
+           (if (bh/is-project-p)
+               (let* ((subtree-end (save-excursion (org-end-of-subtree t)))
+                      (has-next ))
+                 (save-excursion
+                   (forward-line 1)
+                   (while (and (not has-next) (< (point) subtree-end) (re-search-forward "^\\*+ NEXT " subtree-end t))
+                     (unless (member "WAITING" (org-get-tags-at))
+                       (setq has-next t))))
+                 (if has-next
+                     nil
+                   next-headline)) ; a stuck project, has subtasks but no next task
+             nil))))
+
+     (defun bh/skip-non-stuck-projects ()
+       "Skip trees that are not stuck projects"
+       ;; (bh/list-sublevels-for-projects-indented)
+       (save-restriction
+         (widen)
+         (let ((next-headline (save-excursion (or (outline-next-heading) (point-max)))))
+           (if (bh/is-project-p)
+               (let* ((subtree-end (save-excursion (org-end-of-subtree t)))
+                      (has-next ))
+                 (save-excursion
+                   (forward-line 1)
+                   (while (and (not has-next) (< (point) subtree-end) (re-search-forward "^\\*+ NEXT " subtree-end t))
+                     (unless (member "WAITING" (org-get-tags-at))
+                       (setq has-next t))))
+                 (if has-next
+                     next-headline
+                   nil)) ; a stuck project, has subtasks but no next task
+             next-headline))))
+
+     (defun bh/skip-non-projects ()
+       "Skip trees that are not projects"
+       ;; (bh/list-sublevels-for-projects-indented)
+       (if (save-excursion (bh/skip-non-stuck-projects))
+           (save-restriction
+             (widen)
+             (let ((subtree-end (save-excursion (org-end-of-subtree t))))
+               (cond
+				((bh/is-project-p)
+                 nil)
+				((and (bh/is-project-subtree-p) (not (bh/is-task-p)))
+                 nil)
+				(t
+                 subtree-end))))
+         (save-excursion (org-end-of-subtree t))))
+
+     (defun bh/skip-non-tasks ()
+       "Show non-project tasks.
+     Skip project and sub-project tasks, habits, and project related tasks."
+       (save-restriction
+         (widen)
+         (let ((next-headline (save-excursion (or (outline-next-heading) (point-max)))))
+           (cond
+			((bh/is-task-p)
+             nil)
+			(t
+             next-headline)))))
+
+     ;; (defun bh/skip-project-trees-and-habits ()
+     ;;   "Skip trees that are projects"
+     ;;   (save-restriction
+     ;;     (widen)
+     ;;     (let ((subtree-end (save-excursion (org-end-of-subtree t))))
+     ;;       (cond
+     ;;        ((bh/is-project-p)
+     ;;         subtree-end)
+     ;;        ((org-is-habit-p)
+     ;;         subtree-end)
+     ;;        (t
+     ;;         nil)))))
+
+     ;; (defun bh/skip-projects-and-habits-and-single-tasks ()
+     ;;   "Skip trees that are projects, tasks that are habits, single non-project tasks"
+     ;;   (save-restriction
+     ;;     (widen)
+     ;;     (let ((next-headline (save-excursion (or (outline-next-heading) (point-max)))))
+     ;;       (cond
+     ;;        ((org-is-habit-p)
+     ;;         next-headline)
+     ;;        ((and bh/hide-scheduled-and-waiting-next-tasks
+     ;;              (member "WAITING" (org-get-tags-at)))
+     ;;         next-headline)
+     ;;        ((bh/is-project-p)
+     ;;         next-headline)
+     ;;        ((and (bh/is-task-p) (not (bh/is-project-subtree-p)))
+     ;;         next-headline)
+     ;;        (t
+     ;;         nil)))))
+
+     ;; (defun bh/skip-project-tasks-maybe ()
+     ;;   "Show tasks related to the current restriction.
+     ;; When restricted to a project, skip project and sub project tasks, habits, NEXT tasks, and loose tasks.
+     ;; When not restricted, skip project and sub-project tasks, habits, and project related tasks."
+     ;;   (save-restriction
+     ;;     (widen)
+     ;;     (let* ((subtree-end (save-excursion (org-end-of-subtree t)))
+     ;;            (next-headline (save-excursion (or (outline-next-heading) (point-max))))
+     ;;            (limit-to-project (marker-buffer org-agenda-restrict-begin)))
+     ;;       (cond
+     ;;        ((bh/is-project-p)
+     ;;         next-headline)
+     ;;        ((org-is-habit-p)
+     ;;         subtree-end)
+     ;;        ((and (not limit-to-project)
+     ;;              (bh/is-project-subtree-p))
+     ;;         subtree-end)
+     ;;        ((and limit-to-project
+     ;;              (bh/is-project-subtree-p)
+     ;;              (member (org-get-todo-state) (list "NEXT")))
+     ;;         subtree-end)
+     ;;        (t
+     ;;         nil)))))
+
+     ;; (defun bh/skip-project-tasks ()
+     ;;   "Show non-project tasks.
+     ;; Skip project and sub-project tasks, habits, and project related tasks."
+     ;;   (save-restriction
+     ;;     (widen)
+     ;;     (let* ((subtree-end (save-excursion (org-end-of-subtree t))))
+     ;;       (cond
+     ;;        ((bh/is-project-p)
+     ;;         subtree-end)
+     ;;        ((org-is-habit-p)
+     ;;         subtree-end)
+     ;;        ((bh/is-project-subtree-p)
+     ;;         subtree-end)
+     ;;        (t
+     ;;         nil)))))
+
+     ;; (defun bh/skip-non-project-tasks ()
+     ;;   "Show project tasks.
+     ;; Skip project and sub-project tasks, habits, and loose non-project tasks."
+     ;;   (save-restriction
+     ;;     (widen)
+     ;;     (let* ((subtree-end (save-excursion (org-end-of-subtree t)))
+     ;;            (next-headline (save-excursion (or (outline-next-heading) (point-max)))))
+     ;;       (cond
+     ;;        ((bh/is-project-p)
+     ;;         next-headline)
+     ;;        ((org-is-habit-p)
+     ;;         subtree-end)
+     ;;        ((and (bh/is-project-subtree-p)
+     ;;              (member (org-get-todo-state) (list "NEXT")))
+     ;;         subtree-end)
+     ;;        ((not (bh/is-project-subtree-p))
+     ;;         subtree-end)
+     ;;        (t
+     ;;         nil)))))
+
+     ;; (defun bh/skip-projects-and-habits ()
+     ;;   "Skip trees that are projects and tasks that are habits"
+     ;;   (save-restriction
+     ;;     (widen)
+     ;;     (let ((subtree-end (save-excursion (org-end-of-subtree t))))
+     ;;       (cond
+     ;;        ((bh/is-project-p)
+     ;;         subtree-end)
+     ;;        ((org-is-habit-p)
+     ;;         subtree-end)
+     ;;        (t
+     ;;         nil)))))
+
+     (defun bh/skip-non-subprojects ()
+       "Skip trees that are not projects"
+       (let ((next-headline (save-excursion (outline-next-heading))))
+         (if (bh/is-subproject-p)
+             nil
+           next-headline)))
+
+     ;; (setq org-archive-mark-done nil)
+     ;; (setq org-archive-location "%s_archive::* Archived Tasks")
+
+     ;; (defun bh/skip-non-archivable-tasks ()
+     ;;   "Skip trees that are not available for archiving"
+     ;;   (save-restriction
+     ;;     (widen)
+     ;;     ;; Consider only tasks with done todo headings as archivable candidates
+     ;;     (let ((next-headline (save-excursion (or (outline-next-heading) (point-max))))
+     ;;           (subtree-end (save-excursion (org-end-of-subtree t))))
+     ;;       (if (member (org-get-todo-state) org-todo-keywords-1)
+     ;;           (if (member (org-get-todo-state) org-done-keywords)
+     ;;               (let* ((daynr (string-to-int (format-time-string "%d" (current-time))))
+     ;;                      (a-month-ago (* 60 60 24 (+ daynr 1)))
+     ;;                      (last-month (format-time-string "%Y-%m-" (time-subtract (current-time) (seconds-to-time a-month-ago))))
+     ;;                      (this-month (format-time-string "%Y-%m-" (current-time)))
+     ;;                      (subtree-is-current (save-excursion
+     ;;                                            (forward-line 1)
+     ;;                                            (and (< (point) subtree-end)
+     ;;                                                 (re-search-forward (concat last-month "\\|" this-month) subtree-end t)))))
+     ;;                 (if subtree-is-current
+     ;;                     subtree-end ; Has a date in this month or last month, skip it
+     ;;                   nil))  ; available to archive
+     ;;             (or subtree-end (point-max)))
+     ;;         next-headline))))
+
+   #+END_SRC
+
+** Part 2
+  #+BEGIN_SRC emacs-lisp
+    ;;org-mode+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    ;;the following removes emphasis *bold* _underline_  and /italic/ markers in org files - similar to [[][]] and hidden stars
+    (setq org-hide-emphasis-markers t)
+    ;; set the name of org-mode files to be included
+    ;;(setq org-mobile-files (quote ("info.org")))
+    (setq org-mobile-files '("~/Dropbox/org/"))
+    ;; Set to the location of your Org files on your local system
+    (setq org-directory "~/Dropbox/org")
+    ;; Set to the name of the file where new notes will be stored
+    (setq org-mobile-inbox-for-pull "~/Dropbox/org/flagged.org")
+    ;; Set to <your Dropbox root directory>/MobileOrg.
+    (setq org-mobile-directory "~/Dropbox/org/MobileOrg")
+
+    ;; (setq org-export-latex-listings t)
+    ;; (add-to-list 'org-export-latex-packages-alist '("" "listings"))
+    ;; (add-to-list 'org-export-latex-packages-alist '("" "color"))
+
+  #+END_SRC
+
+** Part 3 - org-bullets
+   #+BEGIN_SRC emacs-lisp
+   (use-package org-bullets
+   :ensure t
+   :config
+   (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1)))
+   )
+   #+END_SRC
+* ESS
+
+** Part 1
+   #+BEGIN_SRC emacs-lisp
+       (use-package ess
+       :ensure t)
+
+       ;; prevent ess from replacing the underscore with a <-
+     (ess-toggle-underscore nil)
+
+     ;;ESS for Sweave files
+     (defun Rnw-mode ()
+			(require 'ess-noweb)
+			(noweb-mode)
+			(if (fboundp 'R-mode)
+               (setq noweb-default-code-mode 'R-mode)))
+          (add-to-list 'auto-mode-alist '("\\.rnw\\'" . Rnw-mode))
+          (add-to-list 'auto-mode-alist '("\\.Snw\\'" . Rnw-mode))
+          (setq reftex-file-extensions
+               '(("Snw" "rnw" "nw" "tex" ".tex" ".ltx") ("bib" ".bib")))
+          (setq TeX-file-extensions
+               '("Snw" "rnw" "nw" "tex" "sty" "cls" "ltx" "texi" "texinfo"))
+
+     ;;(global-set-key [f2] 'ess-eval-line-and-step)
+     (define-key ess-mode-map [f2] 'ess-eval-line-and-step)
+	 (defun start-new-r-process ()
+	  (interactive)
+	  (ess-request-a-process "" 0 0)
+	 )
+	 (global-set-key (kbd "S-<f2>") 'start-new-r-process)
+     (setq ess-ask-for-ess-directory nil)
+     (setq ess-local-process-name "R")
+     (setq ansi-color-for-comint-mode 'filter)
+
+     (defun my-ess-start-R ()
+         (interactive)
+         (if (not (member "*R*" (mapcar (function buffer-name) (buffer-list))))
+           (progn
+             (delete-other-windows)
+             (setq w1 (selected-window))
+             (setq w1name (buffer-name))
+             (setq w2 (split-window w1))
+             (R)
+             (set-window-buffer w2 "*R*")
+             (set-window-buffer w1 w1name))))
+
+     (defun eval-chunk ()
+       "This function marks and evaluates the current chunk"
+       (interactive)
+       ;; Get the current point
+       (setq pCurrent (point))
+       ;; Go back to chunk header
+       (re-search-backward "^```.*") (forward-line 1) (setq p1 (point))
+       (re-search-forward "^```") (forward-line -1) (setq p2 (line-end-position))
+       (ess-eval-region p1 p2 nil)
+       (goto-char pCurrent)
+     )
+
+
+     (defun eval-allAbove-R-regionsNoweb ()
+       "This function evaluates all R code within babel R tags above the current point"
+       (interactive)
+       (setq p3 (point))
+       ;; first work out if R is running and if not start it up in an inferior window
+       (my-ess-start-R)
+       (let ((total 0)(counti 1))
+             (setq p3 (point))
+             (setq p1 (point))
+             (beginning-of-buffer)
+             (while (<= (point) p3)
+               (re-search-forward "^<<.*>>=") (setq p1 (point))
+               ;;(re-search-forward "R") (setq p1 (point))
+               (if (< p3 p1) ()
+                     (re-search-forward "@") (re-search-backward "@") (setq p2 (point)) 
+                     (setq counti (point))
+                     (ess-eval-region p1 p2 nil)
+                     ;;(message "this is %d" p1)     
+                     ;;(message "Original is %d" p3)
+                     )
+               )
+             total
+             )
+       (goto-char p3)
+       )
+
+     (define-key ess-mode-map [f8] 'eval-allAbove-R-regionsNoweb)
+     (add-hook 'LaTeX-mode-hook
+                       #'(lambda ()
+                               (define-key LaTeX-mode-map [f8] 'eval-allAbove-R-regionsNoweb)))
+
+
+
+     ;; (add-hook 'ess-mode-hook (lambda()
+     ;;                                                 (set-face-attribute 'font-lock-comment-face nil
+     ;;                                                                                         :family "Optima" :height 100)
+     ;;                                                 )
+     ;;                )
+
+
+     ;; (add-hook 'LaTeX-mode-hook (lambda()
+     ;;                                                 (set-face-attribute 'font-lock-comment-face nil
+     ;;                                                                                         :family "Inconsolata" :height 100 :slant 'italic)
+     ;;                                                 )
+     ;;                )
+
+     ;; (add-hook 'tex-mode-hook (lambda()
+     ;;                                                 (set-face-attribute 'default nil
+     ;;                                                                                         :family "Optima" :height 100)
+     ;;                                                 )
+     ;;                )
+
+     ;; (add-hook 'ess-mode-hook
+     ;;           (lambda ()
+     ;;             (set (make-local-variable 'default-text-properties)
+     ;;                  '(face variable-pitch))))
+
+     ;;(add-hook 'ess-mode-hook 'turn-on-font-lock)
+
+     ;; (defun ess-font-lock-db ()
+     ;;   "Set font-lock colors (leave fore-/back-ground alone) courtesy David
+     ;; Brahm <address@hidden>"
+     ;;   (interactive)
+     ;;   (set-face-foreground 'font-lock-comment-face       "SpringGreen4")  ; #...
+     ;;   %...
+     ;;   (set-face-foreground 'font-lock-string-face        "SeaGreen")   ; "..."
+     ;;   "..."
+     ;;   (set-face-foreground 'font-lock-keyword-face       "MediumBlue") ; if
+     ;;   \end
+     ;;   (set-face-foreground 'font-lock-function-name-face "VioletRed")  ; talk<-
+     ;;   {center}
+     ;;   (set-face-foreground 'font-lock-variable-name-face "Blue")         ; xv
+     ;;   (set-face-foreground 'font-lock-type-face          "Goldenrod")  ; T,F
+     ;;   ?
+     ;;   (set-face-foreground 'font-lock-constant-face      "Magenta")    ; <-
+     ;;   {eq1}
+     ;;   )
+
+     ;; The following is modified from noweb-font-lock-mode.el
+     ;; so that we can highlight the R snippets within the rnw file
+     (defface noweb-font-lock-code-chunk-face
+       '((t (:family "Inconsolata" :background "#FFFFCC")))
+       "Face to highlight noweb code chunks")
+     (defface R-font-lock-doc-chunk-face
+       '((t (:family "Inconsolata" :background "#FFFFCC")))
+       "Face to highlight noweb doc chunks")
+     (defvar R-font-lock-code-chunk-face 'R-font-lock-code-chunk-face
+       "Face to use to highlight the first line of each code chunk (i.e. <<>>=)")
+     (defvar R-font-lock-doc-chunk-face 'R-font-lock-doc-chunk-face
+       "Face to use to highlight the first line of each doc chunk (i.e. @)")
+
+     (defface R-font-lock-code-chunk-face
+       '((t (:family "Inconsolata" :background "#FFFFCC")))
+       "Face to highlight noweb code chunks")
+     (defvar R-font-lock-code-chunk-face 'R-font-lock-code-chunk-face
+       "Face to use to highlight the first line of each code chunk (i.e. <<>>=)")
+
+
+     (defun noweb-font-lock-fontify-chunk-by-number ( chunk-num )
+       "Fontify chunk chunk-num based on the current major mode."
+       (save-excursion
+         (font-lock-set-defaults)
+         (setq old-beginning-of-syntax font-lock-beginning-of-syntax-function)
+         (setq font-lock-beginning-of-syntax-function 'noweb-start-of-syntax)
+         (setq font-lock-keywords
+               (append font-lock-keywords
+                       '(
+                             ("\\(\\[\\[\\)\\([^]]*\\]*\\)\\(\\]\\]\\|\\$\\)"
+                          (1 font-lock-reference-face prepend )
+                          (2 font-lock-keyword-face prepend)
+                          (3 font-lock-reference-face prepend))
+                             ("^[ \t\n]*<<\\([^>]+\\)>>"        ;; reuse code chunk
+                              (1 font-lock-keyword-face  prepend ))
+                             ("^\\(<<\\)\\([^>]*\\)\\(>>=\\)\\(\\(?:[\t][^\n]*\\)?\\)[\n]" ;; code chunk start
+                              (0 R-font-lock-code-chunk-face prepend )
+                          (1 font-lock-reference-face  prepend )
+                          (2 font-lock-keyword-face prepend)
+                          (3 font-lock-reference-face prepend)
+                              (4 font-lock-comment-face prepend))
+                             ("^@\\(\\(?:[ \t][^\n]*\\)?\\)[\n]" ;; doc chunk start
+                          (0 font-lock-reference-face prepend )
+                              (0 R-font-lock-doc-chunk-face prepend )
+                              (1 font-lock-comment-face prepend)
+                              )
+                             ;; ("^<<.*>>=.|\n]*"        ;; reuse code chunk
+                             ;;  (0 R-font-lock-code-chunk-face prepend ))
+                             )
+                       )
+               )
+         (let ((r (cons (marker-position (cdr (aref noweb-chunk-vector
+													chunk-num)))
+						(marker-position (cdr (aref noweb-chunk-vector
+													(1+ chunk-num)))))))
+           (font-lock-fontify-region (car r) (cdr r))
+           t)))
+     ;;End of the R highlighting stuff
+
+     ;; TRAMP requires that the local and report R program is the same - I think that by default ess has this either not set or else set for windows
+     ;;(setq inferior-R-program-name "/usr/local/R")
+
+     ;;View R data frames in libreoffice
+     (require 'ess-view)
+     (setq ess-view--spreadsheet-program "/usr/local/bin/libreoffice5.0")
+
+     ;; R help appears in its own frame
+     (setq ess-help-own-frame 'one)
+
+     (defun my-rdired-View (objname)
+       "View an object in its own buffer. Similar to `ess-rdired-View', but my taste."
+       (interactive "sEnter object name: ")
+       (ess-command "tmpwidth <- options('width')[[1]]\n")
+       (ess-command "options(width=9999)\n")
+       (ess-execute objname nil (concat "R view " objname ))
+       (ess-command "options(width=tmpwidth)\n")
+       (switch-to-buffer (concat "*R view " objname "*"))
+       (toggle-truncate-lines 1))
+
+   #+END_SRC
+
+** Part 2
+  #+BEGIN_SRC emacs-lisp
+    ;; If you want all help buffers to go into one frame do :
+    (setq ess-help-own-frame 'one)
+    (defun my-rdired-View (objname)
+      "View an object in its own buffer. Similar to `ess-rdired-View', but my taste."
+      (interactive "sEnter object name: ")
+      (ess-command "tmpwidth <- options('width')[[1]]\n")
+      (ess-command "options(width=9999)\n")
+      (ess-execute objname nil (concat "R view " objname ))
+      (ess-command "options(width=tmpwidth)\n")
+      (switch-to-buffer (concat "*R view " objname "*"))
+      (toggle-truncate-lines 1))
+  #+END_SRC
+   
+* R
+  #+BEGIN_SRC emacs-lisp
+    ;;(setq load-path (append '("/home/murray/.emacs.d/site-lisp/polymode/" "/home/murray/.emacs.d/site-lisp/polymode/modes") load-path))
+    (use-package polymode
+      :ensure t)
+    ;;    (use-package poly-R
+    ;;      :ensure t)
+    ;;    (use-package poly-markdown
+    ;;      :ensure t)
+
+    ;;(require 'poly-R)
+    ;;(require 'poly-markdown)
+    ;;(require 'polymode)
+    (add-to-list 'auto-mode-alist'("\\.Rmd" . poly-markdown+r-mode))
+
+
+                                            ; Associate file types with modes
+    (add-to-list 'auto-mode-alist '("\\.\\(org\\|org_archive\\|txt\\)$" . org-mode))
+    (add-to-list 'auto-mode-alist'("\\.text" . markdown-mode))
+    (add-to-list 'auto-mode-alist'("\\.markdown" . markdown-mode))
+    (add-to-list 'auto-mode-alist'("\\.md" . markdown-mode))
+    (add-to-list 'auto-mode-alist'("\\.Rmd" . poly-markdown+r-mode))
+    (add-to-list 'auto-mode-alist'("\\.csv" . csv-mode))
+    (setq auto-mode-alist (cons '("\\.\\(pde\\|ino\\)$" . arduino-mode) auto-mode-alist))
+
+
+    (autoload 'markdown-mode "markdown-mode" "Major mode for editing Markdown files" t)
+    (add-to-list 'auto-mode-alist'("\\.text" . markdown-mode))
+    (add-to-list 'auto-mode-alist'("\\.markdown" . markdown-mode))
+    (add-to-list 'auto-mode-alist'("\\.md" . markdown-mode))
+
+    (add-hook 'markdown-mode-hook 'turn-on-orgtbl)
+
+    (defun rmarkdown-new-chunk (name)
+      "Insert a new R chunk."
+      (interactive "sChunk name: ")
+      (insert "\n```{r " name ", results='markdown'}\n")
+      (save-excursion
+        (newline)
+        (insert "```\n")
+        (previous-line)))
+    (global-set-key "\C-ci" 'rmarkdown-new-chunk)
+
+    (defun polymode-mark-or-extend-chunk ()
+      "Put point at the beginning of this chunk (assuming we are in a chunk), mark at the end. The chunk marked is the one that contains the point."
+      (interactive)
+      (re-search-forward "^\\(```\\|@\\)\\s-*$")
+      (move-beginning-of-line nil)
+      (push-mark nil t t)
+      (re-search-backward "^\\(```\\|<<\\)")
+      (move-beginning-of-line 2))
+    (global-set-key "\C-cr" 'polymode-mark-or-extend-chunk)
+  #+END_SRC
+
+
+  #+BEGIN_SRC emacs-lisp
+    ;;The following remove some markdown-mode keybindings as these
+    ;; override some of my own keybindings
+    (defun markdown-unset-tab ()
+      "markdown-mode-hook"
+      (define-key markdown-mode-map (kbd "<tab>") nil))
+    (add-hook 'markdown-mode-hook '(lambda() (markdown-unset-tab)))
+    (defun markdown-unset-M-<down> ()
+      "markdown-mode-hook"
+      (define-key markdown-mode-map (kbd "M-<down>") nil))
+    (add-hook 'markdown-mode-hook '(lambda() (markdown-unset-M-<down>)))
+    (defun markdown-unset-M-<up> ()
+      "markdown-mode-hook"
+      (define-key markdown-mode-map (kbd "M-<up>") nil))
+    (add-hook 'markdown-mode-hook '(lambda() (markdown-unset-M-<up>)))
+
+  #+END_SRC
+
+  #+BEGIN_SRC emacs-lisp
+  (setq ess-ask-for-ess-directory nil)
+(setq inferior-ess-same-window nil)
+(setq ess-help-own-frame 'one)
+
+  #+END_SRC
+* Hydra
+  #+BEGIN_SRC emacs-lisp
+    ;; This is inspired by https://github.com/joedicastro/dotfiles/tree/master/emacs
+    (require 'bind-key)
+    (require 'use-package)
+    (require 'hydra)
+    (require 'calfw-org) ; for the org diary view (calfw package)
+
+    (defun joe-alternate-buffers ()
+      "Toggle between the last two buffers"
+      (interactive)
+      (switch-to-buffer (other-buffer (current-buffer) t)))
+
+    (defun joe-revert-buffer ()
+      "Revert the buffer to the save disk file state"
+      (interactive)
+      (revert-buffer nil t))
+
+    (defun joe-kill-this-buffer ()
+      "Kill the current buffer"
+      (interactive)
+      (kill-buffer (current-buffer)))
+
+    (defun joe-diff-buffer-with-file ()
+      "Compare the current modified buffer with the saved version."
+      (interactive)
+      (let ((diff-switches "-u"))
+        (diff-buffer-with-file (current-buffer))))
+
+    (defun murray-dired-sort-by-name-with-numbers ()
+      (interactive)
+      (setq current-prefix-arg '(4)) ; C-u
+      (call-interactively 's))
+
+    (use-package hydra
+      :ensure t
+      :defer 0.1
+      :init
+      (bind-key "<f12>" 'hydra-master/body)
+      :config
+      (setq lv-use-separator t)
+      (set-face-attribute 'hydra-face-blue nil :foreground "deep sky blue" :weight 'bold)
+
+      (eval-and-compile
+        (defhydra hydra-common (:color blue)
+          ("<ESC>" nil "quit")))
+
+      (defhydra hydra-master (:color blue :idle 0.4)
+        "
+                                                                           ╭───────┐
+                                                                           │ Index │
+    ╭──────────────────────────────────────────────────────────────────────┴───────╯
+      [_a_] bookmarks and tags   [_h_] hide/show     [_o_] organization  [_v_] games
+      [_b_] buffers              [_i_] internet      [_p_] pdf           [_w_] window
+      [_c_] cheatsheets          [_j_] jump          [_q_] exit          [_x_] shell
+      [_d_] dired/ztree          [_k_] spell         [_r_] R             [^y^] macros
+      [_e_] emacs                [_l_] flycheck      [_s_] search        [^z^] register
+      [_f_] file                 [_m_] media         [_t_] text
+      [_g_] git                  [_n_] narrow        [_u_] R/latex/pandoc projects
+    --------------------------------------------------------------------------------
+        "
+        ("<SPC>" joe-alternate-buffers "alternate buffers")
+        ("<ESC>" nil "quit")
+        ("\;" (insert "\;") "\\")
+        ("a"     hydra-bookmarks/body nil)
+        ("b"     hydra-buffers/body nil)
+        ;;("c"     hydra-flycheck/body nil)
+            ("c"     hydra-cheatsheets-and-manuals/body nil)
+        ("d"     hydra-dired/body nil)
+        ("e"     hydra-emacs/body nil)
+        ("f"     hydra-file/body nil)
+        ("g"     hydra-git/body nil)
+            ("h"     hydra-outline/body nil)
+        ("i"     hydra-internet/body nil)
+        ("j"     hydra-jump/body nil)
+        ("k"     hydra-spell/body nil)
+        ("l"     hydra-flycheck/body nil)
+            ;;("l"     hydra-lisp/body nil)
+        ("m"     hydra-media/body nil)
+        ("n"     hydra-narrow/body nil)
+        ("o"     hydra-organization/body nil)
+        ("p"     hydra-pdf/body nil)
+        ("q"     hydra-exit/body nil)
+        ("z"     hydra-register/body nil)
+            ("r"     hydra-R/body nil)
+        ("s"     hydra-search/body nil)
+        ("t"     hydra-text/body nil)
+            ("u"     hydra-RlatexPandoc/body nil)
+        ("v"     hydra-games/body nil)
+        ("w"     ace-window nil)
+        ("x"     hydra-system/body nil)
+            ("y"     hydra-macro/body nil)
+            )
+
+      (defhydra hydra-masterOld (:color blue :idle 0.4)
+        "
+                                                                           ╭───────┐
+                                                                           │ Index │
+    ╭──────────────────────────────────────────────────────────────────────┴───────╯
+      [_a_] bookmarks    [^h^]               [_o_] organization  [_v_] games
+      [_b_] buffers      [_i_] internet      [_p_] project       [_w_] window
+      [_c_] flycheck     [_j_] jump          [_q_] exit          [_x_] shell
+      [_d_] development  [_k_] spell         [_r_] register      [^y^]
+      [_e_] emacs        [_l_] lisp          [_s_] search        [^z^]
+      [_f_] file         [_m_] media         [_t_] text
+      [_g_] git          [_n_] narrow        [^u^] 
+    --------------------------------------------------------------------------------
+        "
+        ("<SPC>" joe-alternate-buffers "alternate buffers")
+        ("<ESC>" nil "quit")
+        ("\;" (insert "\;") "\\")
+        ("a"     hydra-bookmarks/body nil)
+        ("b"     hydra-buffers/body nil)
+        ("c"     hydra-flycheck/body nil)
+        ("d"     hydra-development/body nil)
+        ("e"     hydra-emacs/body nil)
+        ("f"     hydra-file/body nil)
+        ("g"     hydra-git/body nil)
+        ("i"     hydra-internet/body nil)
+        ("j"     hydra-jump/body nil)
+        ("k"     hydra-spell/body nil)
+        ("l"     hydra-lisp/body nil)
+        ("m"     hydra-media/body nil)
+        ("n"     hydra-narrow/body nil)
+        ("o"     hydra-organization/body nil)
+        ("p"     hydra-project/body nil)  ;this uses projectile
+        ("q"     hydra-exit/body nil)
+        ("r"     hydra-register/body nil)
+        ("s"     hydra-search/body nil)
+        ("t"     hydra-text/body nil)
+        ("v"     hydra-games/body nil)
+        ("w"     ace-window nil)
+        ("x"     hydra-system/body nil))
+
+
+    (defhydra hydra-dired (:color blue :hint nil :idle 0.4 :inherit (hydra-common/heads))
+        "
+                                                                             ╭─────┐
+      Sorting                                                                │Dired│
+    ╭────────────────────────────────────────────────────────────────────────┴─────╯
+      s Toggle between Name and Date
+      C-u s -al1v name with numbers
+        -r reverse order
+        -a dont ignore names with .
+        -S file size order
+        -t modification time
+      [_n_] by name (s)
+      [_v_] by name with numbers (C-u s -l1v)                          
+    --------------------------------------------------------------------------------
+        "
+        ("n" (dired-sort-toggle-or-edit "-l1v"))
+            ("v" (murray-dired-sort-by-name-with-numbers "-l1v"))
+            )
+
+  
+       (defhydra hydra-cheatsheets-and-manuals (:color blue :hint nil :idle 0.4 :inherit (hydra-common/heads))
+        "
+                                                           ╭───────────────────────┐
+      General                                              │Cheatsheets and manuals│
+    ╭──────────────────────────────────────────────────────┴───────────────────────╯
+      [_c_] cheetsheets
+      [_m_] manuals                          
+    --------------------------------------------------------------------------------
+        "
+        ("c" hydra-cheatsheets/body nil)
+            ("m" hydra-manuals/body nil)
+            )
+
+   
+
+       (defhydra hydra-cheatsheets (:color blue :hint nil :idle 0.4 :inherit (hydra-common/heads))
+        "
+                                                                       ╭───────────┐
+      General         R                         Blender                │Cheatsheets│
+    ╭──────────────────────────────────────────────────────────────────┴───────────╯
+      [_e_] emacs     [_w_] data wrangling      [_b_] Blender short cuts
+       ^ ^            [_g_] ggplot2             [_B_] Blender key bindings 
+                      [_d_] devtools
+                      [_m_] R markdown
+                      [_s_] shiny
+                      [_a_] Advanced R 
+    --------------------------------------------------------------------------------
+        "
+        ("e" (find-file-other-frame "~/Dropbox/INFO/Cheatsheets/Emacs/Murray_Emacs.pdf"))
+        ("a" (find-file-other-frame "~/Dropbox/INFO/Cheatsheets/advancedR.pdf"))
+        ("g" (find-file-other-frame "~/Dropbox/INFO/Cheatsheets/ggplot2-cheatsheet-2.0.pdf"))
+        ("s" (find-file-other-frame "~/Dropbox/INFO/Cheatsheets/shiny-cheatsheet.pdf"))
+            ("d" (find-file-other-frame "~/Dropbox/INFO/Cheatsheets/devtools-cheatsheet.pdf"))
+            ("m" (find-file-other-frame "~/Dropbox/INFO/Cheatsheets/rmarkdown-cheatsheet-2.0.pdf"))
+            ("w" (find-file-other-frame "~/Dropbox/INFO/Cheatsheets/data-wrangling-cheatsheet.pdf"))
+            ("b" (find-file-other-frame "~/Dropbox/INFO/Cheatsheets/blender.pdf"))
+            ("B" (find-file-other-frame "~/Dropbox/INFO/Cheatsheets/blender-2-5-key-bindings.pdf"))
+            )
+
+       (defhydra hydra-manuals (:color blue :hint nil :idle 0.4 :inherit (hydra-common/heads))
+        "
+                                                                           ╭───────┐
+      Blender         R                                                    │Manuals│
+    ╭──────────────────────────────────────────────────────────────────────┴───────╯
+      [_b_] Blender basics     
+       ^ ^            
+      [_B_] Blender manuals     
+       ^ ^            
+      [_q_] qt manual
+    --------------------------------------------------------------------------------
+        "
+        ("b" (find-file-other-frame "~/Dropbox/Work/Resources/INFO/Manuals/Blender/blenderbasics_4thedition2011.pdf"))
+            ("B" (find-file-other-frame "~/Dropbox/Work/Resources/INFO/Manuals/Blender/blender_276_manual_pdf"))
+            ("q" (find-file-other-frame "~/Dropbox/Work/Resources/References/Tutorials/C++-GUI-Programming-with-Qt-4-1st-ed.pdf"))
+        )
+   
+      (defhydra hydra-bookmarks (:color blue :hint nil :idle 0.4 :inherit (hydra-common/heads))
+        "
+                                                                       ╭───────────┐
+       tags                   bm                             Bookmark  │ Bookmarks │
+    ╭──────────────────────────────────────────────────────────────────┴───────────╯
+      [_._] find tag (M-.)   [_t_] toggle bookmark (F8)         [_h_] list bookmarks (helm)     
+      [_*_] jump back (M-*)  [_a_] show all bookmarks (C-F8)    [_l_] list bookmarks
+      [_?_] list tags        [_b_] show buffer bookmarks (S-F8) [_m_] set bookmark at point
+       ^ ^                   [_j_] jump to a bookmark
+       ^ ^                   [_s_] save bookmarks
+      R:     rtags(pattern='*.R', ofile='TAGS')
+      Other: etags *.ext
+    --------------------------------------------------------------------------------
+        "
+            ("." find-tag)
+            ("*" pop-tag-mark)
+            ("?" list-tags)
+            ("t" bm-toggle)
+            ("a" bm-show-all)
+            ("b" bm-show)
+        ("h" helm-bookmarks)
+        ("j" bookmark-jump)
+        ("l" list-bookmarks)
+        ("m" bookmark-set)
+        ("s" bookmark-save))
+
+        (defhydra hydra-outline (:color blue :hint nil :idle 0.4 :inherit (hydra-common/heads))
+        "
+                                                                       ╭───────────┐
+           Minor mode            Hide/show                        Move │ Outline   │
+    ╭──────────────────────────────────────────────────────────────────┴───────────╯
+      [_o_] outline minor mode   [_h_] hide more <C-S-left>       [_u_] move up <C-S-up>
+      [_a_] show all             [_s_] show more <C-S-right>      [_d_] move down <C-S-down>
+      [_l_] hide all             [_t_] toggle children <C-tab>
+    --------------------------------------------------------------------------------
+        "
+        ("o" outline-minor-mode)
+        ("a" outline-show-all)
+            ("l" hide-body)
+        ("h" outline-hide-more)
+        ("s" outline-show-more)
+        ("t" outline-toggle-children)
+            ("u" outline-previous-visible-heading)
+            ("d" outline-next-visible-heading))
+
+      (defhydra hydra-buffers (:color blue :hint nil :idle 0.4 :inherit (hydra-common/heads))
+        "
+                                                                         ╭─────────┐
+      Switch                 Do                                          │ Buffers │
+    ╭────────────────────────────────────────────────────────────────────┴─────────╯
+      [_b_] switch (ido)       [_k_] kill the buffer
+      [_i_] ibuffer            [_r_] toggle read-only mode
+      [_a_] alternate          [_u_] revert buffer changes
+      [_s_] switch (helm)      [_w_] save buffer
+                             [_d_] diff buffer
+    --------------------------------------------------------------------------------
+        "
+        ("a" joe-alternate-buffers)
+        ("b" ivy-switch-buffer)
+            ("d" joe-diff-buffer-with-file)
+        ("k" joe-kill-this-buffer)
+        ("i" ibuffer)
+        ("m" ace-swap-window)
+        ("r" read-only-mode)
+        ("s" helm-buffers-list)
+        ("u" joe-revert-buffer)
+        ("w" save-buffer))
+
+        (defhydra hydra-flycheck (:color blue :hint nil :idle 0.4 :inherit (hydra-common/heads))
+          "
+                                                                        ╭──────────┐
+       Navigate          Show Errors                  Do                │ Flycheck │
+    ╭───────────────────────────────────────────────────────────────────┴──────────╯
+       ^_p_^revious     [_l_] list errors           [_t_] toggle Flycheck
+          ^^↑^^         [_e_] list errors (helm)    [_c_] select checker
+        ^_f_^irst       [_d_] clear all errors      [_r_] run via compile
+          ^^↓^^          ^ ^                        [_h_] describe checker
+        ^_n_^ext
+    --------------------------------------------------------------------------------
+          "
+          ("c" flycheck-select-checker)
+          ("h" flycheck-describe-checker)
+          ("d" flycheck-clear)
+          ("e" helm-flycheck)
+          ("f" flycheck-first-error)
+          ("l" flycheck-list-errors)
+          ("n" flycheck-next-error :color red)
+          ("p" flycheck-previous-error :color red)
+          ("r" flycheck-compile)
+          ("t" flycheck-mode))
+
+        (defhydra hydra-development (:color blue :hint nil :idle 0.4 :inherit (hydra-common/heads))
+          "
+                                                                     ╭─────────────┐
+         Zeal                   Web                 Quickrun         │ Development │
+    ╭────────────────────────────────────────────────────────────────┴─────────────╯
+      [_z_] search docs   [_c_] Web Colors          [_q_] buffer
+      [_d_] set docset    [_h_] HTTP header         [_v_] region
+       ^ ^                [_m_] HTTP method         [_x_] shell
+       ^ ^                [_r_] HTTP relation       [_p_] with arg
+       ^ ^                [_s_] HTTP status code    [_k_] buffer (helm)
+       ^ ^                [_g_] RESTclient          [_o_] only compile
+       ^ ^                [_f_] RFC doc             [_R_] replace
+      [_l_] lines of code [_F_] RFC index           [_e_] eval/print
+    --------------------------------------------------------------------------------
+          "
+          ("z" zeal-at-point)
+          ("d" zeal-at-point-set-docset)
+          ("c" helm-colors)
+          ("g" restclient-mode)
+          ("f" irfc-visit)
+          ("F" irfc-index)
+          ("q" quickrun)
+          ("v" quickrun-region)
+          ("x" quickrun-shell)
+          ("p" quickrun-with-arg)
+          ("o" quickrun-compile-only)
+          ("R" quickrun-replace-region)
+          ("e" quickrun-eval-print)
+          ("k" helm-quickrun)
+          ("h" http-header)
+          ("m" http-method)
+          ("r" http-relation)
+          ("s" http-status-code)
+          ("l" cloc))
+
+      (defhydra hydra-emacs (:color blue :hint nil :idle 0.4 :inherit (hydra-common/heads))
+          "
+                                                                           ╭───────┐
+       Themes                                                              │ Emacs │
+    ╭──────────────────────────────────────────────────────────────────────┴───────╯
+      [_l_] leuven      [_r_] reload settings     
+      [_s_] solarized
+      [_t_] tsdh-light
+      [_w_] wombat  
+      [_z_] zenburn    
+    --------------------------------------------------------------------------------
+          "
+          ("l" (load-theme 'leuven))
+          ("s" (load-theme 'solarized))
+          ("t" (load-theme 'tsdh-light))
+          ("w" (load-theme 'wombat))
+          ("z" (load-theme 'zenburn))
+          ("r" (load-file "~/.emacs.d/init.el")))
+
+        (defhydra hydra-emacsOld (:color blue :hint nil :idle 0.4 :inherit (hydra-common/heads))
+          "
+                                                                           ╭───────┐
+       Execute       Packages         Help                     Misc        │ Emacs │
+    ╭──────────────────────────────────────────────────────────────────────┴───────╯
+      [_s_] smex       [_p_] list      [_a_] apropos (helm)    [_t_] change theme (helm)
+      [_m_] smex mode  [_i_] install   [_f_] info manual       [_l_] list emacs process
+      [_h_] helm M-x   [_u_] upgrade   [_k_] bindings (helm)   [_c_] init time
+       ^ ^              ^ ^            [_b_] personal bindings [_o_] unbound commands
+    --------------------------------------------------------------------------------
+          "
+          ("C-h b" helm-descbinds "bindings")
+          ("a" helm-apropos)
+          ("b" describe-personal-keybindings)
+          ("c" emacs-init-time)
+          ("i" package-install)
+          ("k" helm-descbinds)
+          ("l" list-processes)
+          ("f" info-display-manual)
+          ("p" paradox-list-packages)
+          ("t" helm-themes)
+          ("u" paradox-upgrade-packages)
+          ("m" smex-major-mode-commands)
+          ("s" smex)
+          ("h" helm-M-x)
+          ("o" smex-show-unbound-commands))
+
+    ;;   (defhydra hydra-file (:color blue :hint nil :idle 0.4 :inherit (hydra-common/heads))
+    ;;       "
+    ;;                                                                         ╭──────┐
+    ;;      Ido               Helm                 Dired        Ztree          │ File │
+    ;; ╭───────────────────────────────────────────────────────────────────────┴──────╯
+    ;;   [_o_] open file   [_f_] find file      [_d_] dired    [_z_] diff dirs
+    ;;    ^ ^              [_m_] mini
+    ;; --------------------------------------------------------------------------------
+    ;;       "
+    ;;       ("o" find-file)
+    ;;       ("f" helm-find-files)
+    ;;       ("m" helm-mini)
+    ;;       ("z" ztree-diff)
+    ;;       ("d" dired))
+
+        (defhydra hydra-file (:color blue :hint nil :idle 0.4 :inherit (hydra-common/heads))
+          "
+                                                                            ╭──────┐
+      Specific Files       Specific Directories                             │ File │
+    ╭───────────────────────────────────────────────────────────────────────┴──────╯
+      [_i_] init.el          [_w_] WQ                       [_I_] re-load init.el
+      [_n_] notes.org        [_l_] LTM
+      [_a_] AIMS.org         [_o_] Other
+      [_r_] references.org
+      [_b_] References.bib
+    --------------------------------------------------------------------------------
+          "
+          ("i" (find-file "~/.emacs.d/init.el"))
+              ("n" (find-file "~/Dropbox/org/notes.org"))
+              ("a" (find-file "~/Dropbox/org/AIMS.org"))
+              ("r" (find-file "~/Dropbox/org/references.org"))
+              ("b" (find-file "~/Dropbox/Work/Resources/References/References.bib"))
+              ("w" (dired "~/Work/AIMS/WQ"))
+              ("l" (dired "~/Work/AIMS/LTM"))
+              ("o" (dired "~/Work/AIMS/Other"))
+              ("I" (load-file "~/.emacs.d/init.el"))
+              )
+
+
+      (defhydra hydra-text (:color blue :hint nil :idle 0.4 :inherit (hydra-common/heads))
+          "
+                                                                            ╭──────┐
+     Size  Toggle              Unicode                        Do            │ Text │
+    ╭───────────────────────────────────────────────────────────────────────┴──────╯
+      _k_  [_f_] fill column     [_d_] unicode character           [_a_] align with regex
+      ^↑^  [_h_] hidden chars    [_e_] evil digraphs table         [_w_] remove trailing ' '
+      ^ ^  [_l_] line numbers    [_s_] specific code block         [_n_] count words
+      ^↓^  [_t_] trailing ' '    [_u_] unicode character (helm)    [_i_] lorem ipsum
+      _j_  [_v_] font space      [_p_] character code              [_x_] comment box
+      ^ ^  [_c_] comment          ^ ^                              [_q_] boxquote
+      ^ ^  [_b_] multibyte chars  ^ ^                              [_m_] iedit (multiple)
+      ^ ^   ^ ^                   ^ ^                              [_r_] expand region
+    --------------------------------------------------------------------------------
+          "
+          ("a" align-regexp)
+          ("b" toggle-enable-multibyte-characters)
+          ("c" evilnc-comment-or-uncomment-lines)
+          ("d" insert-char)
+          ("e" evil-ex-show-digraphs)
+          ("f" fci-mode)
+          ("h" whitespace-mode)
+          ("i" lorem-ipsum-insert-paragraphs)
+          ("k" text-scale-increase :color red)
+          ("j" text-scale-decrease :color red)
+          ("l" linum-mode)
+          ("n" count-words)
+          ("m" iedit)
+          ("p" describe-char)
+          ("r" er/expand-region)
+          ("s" charmap)
+          ("t" joe-toggle-show-trailing-whitespace)
+          ("u" helm-ucs)
+          ("v" variable-pitch-mode)
+          ("w" whitespace-cleanup)
+          ("q" hydra-boxquote/body)
+          ("x" comment-box))
+
+      (defhydra hydra-git (:color blue :hint nil :idle 0.4 :inherit (hydra-common/heads))
+          "
+                                                                             ╭─────┐
+       Magit                          VC                    Timemachine      │ Git │
+    ╭────────────────────────────────────────────────────────────────────────┴─────╯
+      [_s_] status              [_d_] diffs between revisions  [_t_] timemachine
+      [_B_] blame mode          [_b_] edition history
+      [_l_] file log
+    --------------------------------------------------------------------------------
+          "
+          ("B" magit-blame-mode)
+          ("b" vc-annotate)
+          ("d" vc-diff)
+          ("l" magit-file-log)
+          ("s" magit-status)
+          ("t" git-timemachine))
+
+      (defhydra hydra-internet (:color blue :hint nil :idle 0.4 :inherit (hydra-common/heads))
+          "
+                                                                        ╭──────────┐
+        Browse       Search             Social               Post       │ Internet │
+    ╭───────────────────────────────────────────────────────────────────┴──────────╯
+      [_w_] eww      [_g_] google          [_f_] elfeed            [_i_] imgur
+      [_u_] url      [_m_] google maps     [_t_] twitter
+       ^ ^           [_s_] surfraw         [_x_] stack overflow
+       ^ ^           [_d_] wordnik
+    --------------------------------------------------------------------------------
+          "
+          ("f" elfeed)
+          ("g" google-this)
+          ("i" imgur-post)
+          ("m" google-maps)
+          ("d" define-word-at-point)
+          ("s" helm-surfraw)
+          ("t" twit)
+          ("w" eww)
+          ("u" browse-url-at-point)
+          ("x" sx-tab-newest))
+
+      (defhydra hydra-jump (:color blue :hint nil :idle 0.4 :inherit (hydra-common/heads))
+          "
+                                                                            ╭──────┐
+      Window          Word/Char        Line         iSearch                 │ Jump │
+    ╭───────────────────────────────────────────────────────────────────────┴──────╯
+      [_w_] jump        [_j_] word         [_l_] jump     [_i_] jump
+      [_d_] close       [_p_] all words    [_y_] copy
+      [_z_] maximize    [_b_] subword      [_m_] move
+      [_s_] swap        [_c_] char         [_v_] copy region
+       ^ ^              [_a_] two chars
+    --------------------------------------------------------------------------------
+          "
+          ("w" ace-window)
+          ("d" ace-delete-window)
+          ("z" ace-maximize-window)
+          ("s" ace-swap-window)
+          ("j" avy-goto-word-1)
+          ("p" avy-goto-word-0)
+          ("b" avy-goto-subword-0)
+          ("c" avy-goto-char)
+          ("a" avy-goto-char-2)
+          ("l" avy-goto-line)
+          ("y" avy-copy-line)
+          ("m" avy-move-line)
+          ("v" avy-copy-region)
+          ("i" avy-isearch))
+
+      (defhydra hydra-spell (:color blue :hint nil :idle 0.4 :inherit (hydra-common/heads))
+          "
+                                                                           ╭───────┐
+        Flyspell               Ispell                      Gtranslate      │ Spell │
+    ╭──────────────────────────────────────────────────────────────────────┴───────╯
+      [_k_] correct word       [_w_] check word            [_g_] en ⇆ es
+      [_n_] next error         [_t_] toggle dictionary     [_G_] any lang
+      [_f_] toggle flyspell    [_d_] change dictionary
+      [_p_] toggle prog mode
+    --------------------------------------------------------------------------------
+          "
+          ("w" ispell-word)
+          ("d" ispell-change-dictionary)
+          ("t" joe-switch-dictionary)
+          ("g" google-translate-smooth-translate)
+          ("G" google-translate-query-translate)
+          ("f" flyspell-mode)
+          ("p" flyspell-prog-mode)
+          ("k" flyspell-auto-correct-word)
+          ("n" flyspell-goto-next-error))
+
+      (defhydra hydra-lisp (:color blue :hint nil :idle 0.4 :inherit (hydra-common/heads))
+          "
+                                                                            ╭──────┐
+        Elisp              Bug hunter                                       │ Lisp │
+    ╭───────────────────────────────────────────────────────────────────────┴──────╯
+      [_r_] eval region    [_f_] file
+      [_s_] eval sexp      [_i_] init-file
+    --------------------------------------------------------------------------------
+          "
+          ("f" bug-hunter-file)
+          ("i" bug-hunter-init-file)
+          ("r" eval-region)
+          ("s" eval-last-sexp))
+
+      (defhydra hydra-narrow (:color blue :hint nil :idle 0.4 :inherit (hydra-common/heads))
+          "
+                                                                          ╭────────┐
+        Narrow                                                            │ Narrow │
+    ╭─────────────────────────────────────────────────────────────────────┴────────╯
+      [_f_] narrow to defun (C-x n d)
+      [_p_] narrow to page (C-x n p)
+      [_r_] narrow to region (C-x n n) n n
+      [_w_] widen (C-x n w)
+    --------------------------------------------------------------------------------
+          "
+          ("f" narrow-to-defun)
+          ("p" narrow-to-page)
+          ("r" narrow-to-region)
+          ("w" widen))
+
+      (defhydra hydra-pdf (:color blue :hint nil :idle 0.4 :inherit (hydra-common/heads))
+              "
+                                                                       ╭───────────┐
+        Navigation           Search                  Display           │ pdf-tools │
+    ╭──────────────────────────────────────────────────────────────────┴───────────╯
+      [_<_] arrows to move  [_s_] normal search         [_+_] zoom in
+      [_p_] previous page   [_S_] Occur search (M-s o)  [_-_] zoom out
+      [_n_] next page                                   [_H_] fit height (W=width; P=page)
+      [_g_] go to page (M-g g)                          [_o_] outline
+
+                                                                       ╭───────────┐
+        Annotations                                                    │ pdf-tools │
+    ╭──────────────────────────────────────────────────────────────────┴───────────╯
+      [_l_] list annotations (C-c C-a l)
+      [_a_] add text (icon) annotation
+      [_h_] add highlight annotation (C-c C-a h)
+      [_q_] add squiggly annotation (C-c C-a s)
+      [_u_] add underline annotation (C-c C-a u)
+    --------------------------------------------------------------------------------
+          "
+          ("<" narrow-to-defun)
+          ("p" pdf-view-previous-page)
+          ("n" pdf-view-next-page)
+          ("g" pdf-view-goto-page)
+              ("s" isearch-forward)
+              ("S" pdf-occur-search)
+              ("+" pdf-view-enlarge)
+              ("-" pdf-view-shrink)
+              ("H" pdf-view-fit-height-to-window)
+              ("o" pdf-outline)
+              ("l" pdf-annot-list-annotations)
+              ("a" pdf-annot-add-text-annotation)
+              ("h" pdf-annot-add-highlight-markup-annotation)
+              ("q" pdf-annot-add-squiggly-markup-annotation)
+              ("u" pdf-annot-add-underline-markup-annotation))
+  
+    ;;   (defhydra hydra-project (:color blue :hint nil :idle 0.4 :inherit (hydra-common/heads))
+    ;;       "
+    ;;                                                                   ╭────────────┐
+    ;;   Files             Search          Buffer             Do         │ Projectile │
+    ;; ╭─────────────────────────────────────────────────────────────────┴────────────╯
+    ;;   [_f_] file          [_a_] ag          [_b_] switch         [_g_] magit
+    ;;   [_l_] file dwim     [_A_] grep        [_v_] show all       [_p_] commander
+    ;;   [_r_] recent file   [_s_] occur       [_V_] ibuffer        [_i_] info
+    ;;   [_d_] dir           [_S_] replace     [_K_] kill all
+    ;;   [_o_] other         [_t_] find tag
+    ;;   [_u_] test file     [_T_] make tags
+    ;;   [_h_] root
+    ;;                                                                       ╭────────┐
+    ;;   Other Window      Run             Cache              Do             │ Fixmee │
+    ;; ╭──────────────────────────────────────────────────╯ ╭────────────────┴────────╯
+    ;;   [_F_] file          [_U_] test        [_kc_] clear         [_x_] TODO & FIXME
+    ;;   [_L_] dwim          [_m_] compile     [_kk_] add current   [_X_] toggle
+    ;;   [_D_] dir           [_c_] shell       [_ks_] cleanup
+    ;;   [_O_] other         [_C_] command     [_kd_] remove
+    ;;   [_B_] buffer
+    ;; --------------------------------------------------------------------------------
+    ;;       "
+    ;;       ("a"   projectile-ag)
+    ;;       ("A"   projectile-grep)
+    ;;       ("b"   projectile-switch-to-buffer)
+    ;;       ("B"   projectile-switch-to-buffer-other-window)
+    ;;       ("c"   projectile-run-async-shell-command-in-root)
+    ;;       ("C"   projectile-run-command-in-root)
+    ;;       ("d"   projectile-find-dir)
+    ;;       ("D"   projectile-find-dir-other-window)
+    ;;       ("f"   projectile-find-file)
+    ;;       ("F"   projectile-find-file-other-window)
+    ;;       ("g"   projectile-vc)
+    ;;       ("h"   projectile-dired)
+    ;;       ("i"   projectile-project-info)
+    ;;       ("kc"  projectile-invalidate-cache)
+    ;;       ("kd"  projectile-remove-known-project)
+    ;;       ("kk"  projectile-cache-current-file)
+    ;;       ("K"   projectile-kill-buffers)
+    ;;       ("ks"  projectile-cleanup-known-projects)
+    ;;       ("l"   projectile-find-file-dwim)
+    ;;       ("L"   projectile-find-file-dwim-other-window)
+    ;;       ("m"   projectile-compile-project)
+    ;;       ("o"   projectile-find-other-file)
+    ;;       ("O"   projectile-find-other-file-other-window)
+    ;;       ("p"   projectile-commander)
+    ;;       ("r"   projectile-recentf)
+    ;;       ("s"   projectile-multi-occur)
+    ;;       ("S"   projectile-replace)
+    ;;       ("t"   projectile-find-tag)
+    ;;       ("T"   projectile-regenerate-tags)
+    ;;       ("u"   projectile-find-test-file)
+    ;;       ("U"   projectile-test-project)
+    ;;       ("v"   projectile-display-buffer)
+    ;;       ("V"   projectile-ibuffer)
+    ;;       ("X"   fixmee-mode)
+    ;;       ("x"   fixmee-view-listing))
+
+      (defhydra hydra-exit (:color blue :hint nil :idle 0.4 :inherit (hydra-common/heads))
+          "
+                                                                            ╭──────┐
+       Quit                                                                 │ Exit │
+    ╭───────────────────────────────────────────────────────────────────────┴──────╯
+      [_c_] exit emacs (standalone or client)
+      [_s_] shutdown the emacs daemon
+    --------------------------------------------------------------------------------
+          "
+          ("c" save-buffers-kill-terminal)
+          ("s" save-buffers-kill-emacs))
+
+      (defhydra hydra-R (:color blue :hint nil :idle 0.4 :inherit (hydra-common/heads))
+          "
+                                                                        ╭──────────┐
+       Logs                        View                     Undo        │ R/ESS    │
+    ╭───────────────────────────────────────────────────────────────────┴──────────╯
+      [_n_] narrow to function    [_v_] view ctable 
+      [_w_] widen                  (or try library(DT) datatable(df)
+ 
+    --------------------------------------------------------------------------------
+          "
+          ("n" narrow-to-defun)
+              ("v" ess-R-dv-ctable)
+          ("w" widen))
+
+  
+      (defhydra hydra-register (:color blue :hint nil :idle 0.4 :inherit (hydra-common/heads))
+          "
+                                                                        ╭──────────┐
+       Logs                        Registers                Undo        │ Register │
+    ╭───────────────────────────────────────────────────────────────────┴──────────╯
+      [_n_] narrow                 [_e_] emacs registers    [_u_] undo tree
+      [_w_] widen                  [_r_] evil registers
+      [_b_] minibuffer             [_m_] evil marks
+      [_l_] messages               [_k_] kill ring
+      [_d_] diff buffer with file
+    --------------------------------------------------------------------------------
+          "
+          ("n" narrow-to-defun)
+          ("w" widen)
+          ("e" helm-register)
+          ("k" helm-show-kill-ring)
+          ("a" helm-all-mark-rings)
+          ("l" popwin:messages)
+          ("m" evil-show-marks)
+          ("o" view-echo-area-messages)
+          ("r" evil-show-registers)
+          ("b" helm-minibuffer-history)
+          ("u" undo-tree-visualize)
+              ("d" diff))
+
+      (defhydra hydra-search (:color blue :hint nil :idle 0.4 :inherit (hydra-common/heads))
+          "
+                                                                          ╭────────┐
+       Files                             Buffer                           │ Search │
+    ╭─────────────────────────────────────────────────────────────────────┴────────╯
+      [_a_] regex search (Ag)           [_b_] by word
+      [_A_] regex by filetype (Ag)      [_o_] by word (occur)
+      [_h_] regex search (grep & helm)  [_w_] by word (multi)
+      [_g_] regex search (grep)         [_t_] tags & titles
+      [_f_] find                        [_r_] re-builder
+      [_l_] locate                      [_g_] query-replace-regexp
+    --------------------------------------------------------------------------------
+          "
+          ("A" ag-files)
+          ("a" ag)
+          ("b" helm-swoop)
+          ("f" helm-find)
+          ("g" rgrep)
+          ("h" helm-do-grep)
+          ("l" helm-locate)
+          ("o" helm-occur)
+          ("t" helm-semantic-or-imenu)
+          ("w" helm-multi-swoop)
+              ("r" re-builder)
+              ("g" reb-query-replace))
+
+      (defhydra hydra-games (:color blue :hint nil :idle 0.4 :inherit (hydra-common/heads))
+          "
+                                                                           ╭───────┐
+       Game                                                                │ Games │
+    ╭──────────────────────────────────────────────────────────────────────┴───────╯
+      [_p_] 2048-game      [_c_] chess (computer)
+      [_b_] bubbles        [_a_] chess (internet)
+      [_t_] tetris
+      [_g_] gomoku
+    --------------------------------------------------------------------------------
+          "
+          ("p" 2048-game)
+          ("b" bubbles-set-game-hard)
+          ("c" chess)
+          ("a" chess-ics)
+          ("g" gomoku)
+          ("t" tetris))
+
+      (defhydra hydra-RlatexPandoc (:color blue :hint nil :idle 0.4 :inherit (hydra-common/heads))
+          "
+                                                                ╭──────────────────┐
+       Create project                            Snippets       │ R, LaTeX, Pandoc │
+    ╭───────────────────────────────────────────────────────────┴──────────────────╯
+      [_s_] small markdown knitr pandoc        
+      [_l_] large markdown knitr pandoc        
+      [_e_] elsarticle markdown knitr pandoc
+      [_k_] knitr-xelatex
+      [_r_] R-xelatex
+  
+    --------------------------------------------------------------------------------
+          "
+          ("s" small-markdown-knitr-pandoc)
+          ("l" large-markdown-knitr-pandoc)
+          ("e" elsarticle-R)
+          ("k" knitr-xelatex)
+          ("r" R-xelatex))
+
+      (defhydra hydra-macro (:color blue :hint nil :idle 0.4 :inherit (hydra-common/heads))
+          "
+                                                                ╭──────────────────┐
+       Create project                                           │      Macros      │
+    ╭───────────────────────────────────────────────────────────┴──────────────────╯
+      [_a_] start recording (F3)        
+      [_z_] stop recording (F4)        
+      [_n_] name the last macro (C-x C-k n)  - after which M-x name to run
+      [_i_] insert macro as elisp code
+  
+    --------------------------------------------------------------------------------
+          "
+          ("a" kmacro-start-macro-or-insert-counter)
+          ("z" kmacro-end-or-call-macro)
+          ("n" kmacro-name-last-macro)
+          ("i" insert-kbd-macro))
+
+  
+      (defhydra hydra-system (:color blue :hint nil :idle 0.4 :inherit (hydra-common/heads))
+          "
+                                                                          ╭────────┐
+       Terminals                     System                               │ System │
+    ╭─────────────────────────────────────────────────────────────────────┴────────╯
+      [_s_] new multi-term           [_c_] shell command
+      [_n_] next multi-term          [_a_] aync shell command
+      [_p_] previous multi-term      [_m_] man page
+      [_d_] dedicated multi-term     [_l_] list system process
+      [_e_] eshell                   [_t_] top command
+    --------------------------------------------------------------------------------
+          "
+          ("a" async-shell-command)
+          ("c" shell-command)
+          ("e" eshell)
+          ("m" helm-man-woman)
+          ("l" proced)
+          ("s" multi-term)
+          ("n" multi-term-next)
+          ("p" multi-term-previous)
+          ("d" multi-term-dedicated-toggle)
+          ("t" helm-top))
+
+    ;;   (defhydra hydra-media (:color blue :hint nil :idle 0.4 :inherit (hydra-common/heads))
+    ;;       "
+    ;;                                                                        ╭───────┐
+    ;;    Emms                Mpd                  Volume                     │ Media │
+    ;; ╭──────────────────────────────────────────────────────────────────────┴───────╯
+    ;;  [_e_] show emms      [_n_] next song          [_-_] volume down (shift number pad -)
+    ;;  [_b_] browse         [_p_] previous song      [_+_] volume up (shift number pad +)
+    ;;  [_f_] play file      [_c_] clear playlist
+    ;;   ^ ^                 [_o_] show song
+    ;;   ^ ^                 [_P_] pause
+    ;;   ^ ^                 [_s_] stop
+    ;;   ^ ^                 [_y_] start & sync
+    ;; --------------------------------------------------------------------------------
+    ;;       "
+    ;;        ("e" emms)
+    ;;       ("a" emms-start)
+    ;;       ("x" emms-stop)
+    ;;       ("b" emms-smart-browse)
+    ;;       ("f" emms-play-file)
+    ;;       ("m" emms-player-mpd-connect)
+    ;;       ("c" emms-player-mpd-clear)
+    ;;       ("n" emms-player-mpd-next)
+    ;;       ("o" emms-player-mpd-show)
+    ;;       ("P" emms-player-mpd-pause)
+    ;;       ("p" emms-player-mpd-previous)
+    ;;       ("s" emms-player-mpd-stop)
+    ;;       ("y" emms-player-mpd-start)
+    ;;       ("-" emms-volume-lower :color red)
+    ;;       ("\+" emms-volume-raise :color red))
+
+
+      (defhydra hydra-media (:color blue :hint nil :idle 0.4 :inherit (hydra-common/heads))
+          "
+                                                                           ╭───────┐
+       Emms                        Volume                                  │ Media │
+    ╭──────────────────────────────────────────────────────────────────────┴───────╯
+     [_e_] show emms (M-x emms)      [_-_] volume down (shift number pad -)
+     [_c_] current song (c)          [_+_] volume up (shift number pad +)                
+     [_s_] stop song                 
+     [_b_] browsing                  
+     [_n_] next song                           
+     [_p_] previous song                           
+    --------------------------------------------------------------------------------
+          "
+              ("e" emms)
+          ("a" emms-start)
+          ("s" emms-stop)
+          ("b" emms-smart-browse)
+          ("n" emms-next)
+          ("c" emms-playlist-mode-center-when-go)
+          ("p" emms-previous)
+          ("-" emms-volume-lower :color red)
+          ("\+" emms-volume-raise :color red))
+
+      (defhydra hydra-organization (:color blue :hint nil :idle 0.4 :inherit (hydra-common/heads))
+          "
+                                                                    ╭──────────────┐
+         Tasks            Org mode                                  │ Organization │
+    ╭───────────────────────────────────────────────────────────────┴──────────────╯
+      [_a_] agenda        [_q_] set tags (C-c C-q)
+      [_c_] calfw-org     [_Q_] realign tags
+      [_d_] diary         [_b_] subtree to indirect buffer (C-c C-x b)
+      [_j_] taskjuggler (M-x org-taskjuggler-export-process-and-open)                 
+                                                                     ╭─────────────┐
+         Tasks            Org mode                                   │Time tracking│
+    ╭────────────────────────────────────────────────────────────────┴─────────────╯
+      [_g_] goto active clock (org-clock-goto) (C-c C-x C-j)
+                   
+                                                                     ╭─────────────┐
+         Tasks            Org mode                                   │   Org Views │
+    ╭────────────────────────────────────────────────────────────────┴─────────────╯
+      [_C_] columns on (C-c C-x C-c) - q to turn off
+      [_D_] org-clock display (C-c C-x C-d)
+      [_R_] add clock table (C-c C-x C-r)
+
+                                                                     ╭─────────────┐
+         Tasks            Org mode                                   │ Agenda Views│
+    ╭────────────────────────────────────────────────────────────────┴─────────────╯
+      [_w_] refile (C-x C-w)
+      [_v_] different views (v)
+      [_B_] operate on bulk of items (eg. to archive) (B)
+          "
+          ("a" org-agenda)
+              ("b" org-tree-to-indirect-buffer)
+              ("c" cfw:open-org-calendar)
+              ("d" calendar)
+              ("q" org-set-tags-command)
+              ("j" org-taskjuggler-export-process-and-open)
+              ("Q" org-align-all-tags)
+              ("g" org-clock-goto)
+              ("C" org-columns)
+              ("D" org-clock-display)
+              ("R" org-clock-report)
+              ("w" org-refile)
+              ("v" org-agenda-view-mode-dispatch)
+              ("B" org-agenda-bulk-action)
+      )
+
+
+  
+      (defhydra hydra-organizationOLD (:color blue :hint nil :idle 0.4 :inherit (hydra-common/heads))
+          "
+                                                                    ╭──────────────┐
+         Tasks            Org mode               Comms      Others  │ Organization │
+    ╭───────────────────────────────────────────────────────────────┴──────────────╯
+      [_a_] agenda      [_c_] capture             [_m_] mail      [_x_] speed type
+      [_l_] agenda list [_p_] pomodoro            [_t_] contacts
+      [_d_] calendar    [_s_] search headings     [_h_] add location
+       ^ ^              [_g_] open location gmaps
+       ^ ^              [_f_] archive subtree
+
+                                                                    ╭──────────────┐
+         Time clocking    Org mode               Comms      Others  │ Organization │
+    ╭───────────────────────────────────────────────────────────────┴──────────────╯
+      [_i_] clocking in (C-c C-x C-i)
+    --------------------------------------------------------------------------------
+          "
+          ("a" org-agenda)
+          ("c" org-capture)
+          ("d" cfw:open-org-calendar)
+          ("g" org-location-google-maps)
+          ("h" org-address-google-geocode-set)
+          ("l" org-agenda-list)
+          ("f" org-archive-subtree)
+          ("m" mu4e)
+          ("p" org-pomodoro)
+          ("s" helm-org-agenda-files-headings)
+          ("t" org-contacts)
+              ("i" org-clock-in)
+          ("x" speed-type-text))
+
+       (defhydra hydra-leader ( :color blue :hint nil :idle 0.4)
+           "
+                                                                          ╭────────┐
+       Toggle                        Do                                   │ Leader │
+    ╭─────────────────────────────────────────────────────────────────────┴────────╯
+      [_c_] comment                  [_a_] align with regex
+      [_f_] fill column              [_p_] show character code
+      [_h_] hidden chars             [_i_] insert unicode character (helm)
+      [_e_] trailing whitespace      [_<SPC>_] remove trailing whitespaces
+      [_v_] font space               [_u_] undo tree
+       ^ ^                           [_j_] jump word
+       ^ ^                           [_x_] comment box
+       ^ ^                           [_r_] expand region
+       ^ ^                           [_m_] iedit (multiple edit)
+       ^ ^                           [_g_] google translate
+       ^ ^                           [_s_] swiper
+       ^ ^                           [_t_] helm-semantic-or-imenu
+    --------------------------------------------------------------------------------
+          "
+          ("<escape>" nil "quit")
+          ("a" align-regexp)
+          ("c" evilnc-comment-or-uncomment-lines)
+          ("r" er/expand-region)
+          ("f" fci-mode)
+          ("g" google-translate-smooth-translate)
+          ("h" whitespace-mode)
+          ("i" helm-ucs)
+          ("j" avy-goto-word-1)
+          ("m" iedit-mode)
+          ("n" count-words)
+          ("p" describe-char)
+          ("e" joe-toggle-show-trailing-whitespace)
+          ("u" undo-tree-visualize)
+          ("v" variable-pitch-mode)
+          ("<SPC>" whitespace-cleanup)
+          ("s" joe-swiper)
+          ("t" helm-semantic-or-imenu)
+          ("x" comment-box)))
+
+  #+END_SRC
+
+* Themes
+  #+BEGIN_SRC emacs-lisp
+    ;; Load the leuven theme
+    (load-theme 'leuven t)
+
+    (use-package color-theme
+      :ensure t)
+
+     ;;(use-package zenburn-theme
+     ;;  :ensure t
+     ;;  :config (load-theme 'zenburn t))
+
+     ;;(use-package spacemacs-theme
+     ;;  :ensure t
+     ;;  ;:init
+     ;;  ;(load-theme 'spacemacs-dark t)
+     ;;  )
+
+    (use-package base16-theme
+      :ensure t
+      )
+
+    ;; the moe theme is only being used for the powerline
+    (use-package moe-theme
+      :ensure t)
+    ;; the following is used to lighted the yellow background
+    (setq moe-light-pure-white-background-in-terminal t)
+
+     ;;(load-theme 'base16-flat t)
+     ;;(moe-light)
+    (use-package powerline
+      :ensure t
+      :config
+      ;;(powerline-moe-theme)
+      (powerline-moe-theme)
+      )
+  #+END_SRC
+
