@@ -4307,5 +4307,91 @@
 
   #+END_SRC
 
-* 
+* Key bindings
+  #+BEGIN_SRC emacs-lisp
+    (global-set-key "\C-cl" 'org-store-link)
+    (global-set-key "\C-ca" 'org-agenda)
+    (global-set-key "\C-cb" 'org-iswitchb)
+    (global-set-key (kbd "C-c c") 'org-capture) ; start capture mode
+    (windmove-default-keybindings 'meta)                                           
+    (global-set-key [M-up] 'windmove-up)                                          
+    (global-set-key [M-down] 'windmove-down)                                      
+    (global-set-key [M-left] 'windmove-left)                                       
+    (global-set-key [M-right] 'windmove-right)                                 
+    (global-set-key (kbd "S-C-<left>") 'shrink-window-horizontally)
+    (global-set-key (kbd "S-C-<right>") 'enlarge-window-horizontally)
+    (global-set-key (kbd "S-C-<up>") 'shrink-window)
+    (global-set-key (kbd "S-C-<down>") 'enlarge-window)
+    (global-set-key [f5] 'compile)
+    (global-set-key [f6] 'ess-rdired)
+    ;;(global-set-key [f7] 'ess-eval-chunk)
+    (global-set-key [f7] 'eval-chunk)
+    (global-set-key (kbd "S-TAB") 'markdown-cycle)
+    (global-unset-key [f2 f2])
+    (global-set-key [C-f1] 'framepop-toggle-frame)
+
+    ;;Define global keys
+    (global-set-key [f5] 'compile)
+    (global-set-key [f6] 'ess-rdired)
+    ;;(global-set-key [f7] 'ess-eval-chunk)
+    (global-set-key [f7] 'eval-chunk)
+    (global-set-key (kbd "S-TAB") 'markdown-cycle)
+    (global-unset-key [f2 f2])
+    (global-set-key [C-f1] 'framepop-toggle-frame)
+
+    ;;Turn off the annoying system bell or beep
+    (setq visible-bell t)
+    (setq ring-bell-function 'ignore)
+
+    ;;answer "y/n" rather than "yes/no"
+    (defalias 'yes-or-no-p 'y-or-n-p)
+
+  #+END_SRC
+
+* Custom variables
+  #+BEGIN_SRC emacs-lisp
+    (custom-set-variables
+     ;; custom-set-variables was added by Custom.
+     ;; If you edit it by hand, you could mess it up, so be careful.
+     ;; Your init file should contain only one such instance.
+     ;; If there is more than one, they won't work right.
+     '(ansi-color-faces-vector
+       [default default default italic underline success warning error])
+     '(appt-display-duration 20)
+     '(bmkp-last-as-first-bookmark-file "/home/murray/.emacs.d/bookmarks")
+     '(custom-safe-themes
+		(quote
+			    ("8db4b03b9ae654d4a57804286eb3e332725c84d7cdab38463cb6b97d5762ad26" "20e359ef1818a838aff271a72f0f689f5551a27704bf1c9469a5c2657b417e6c" "8aebf25556399b58091e533e455dd50a6a9cba958cc4ebb0aab175863c25b9a4" default)))
+     '(ecb-layout-window-sizes
+       (quote
+     (("left8"
+       (ecb-directories-buffer-name 0.2 . 0.2898550724637681)
+       (ecb-sources-buffer-name 0.2 . 0.2318840579710145)
+       (ecb-methods-buffer-name 0.2 . 0.2898550724637681)
+       (ecb-history-buffer-name 0.2 . 0.17391304347826086)))))
+     '(ess-R-font-lock-keywords
+       (quote
+     ((ess-R-fl-keyword:modifiers . t)
+      (ess-R-fl-keyword:fun-defs . t)
+      (ess-R-fl-keyword:keywords . t)
+      (ess-R-fl-keyword:assign-ops . t)
+      (ess-R-fl-keyword:constants . t)
+      (ess-fl-keyword:fun-calls . t)
+      (ess-fl-keyword:numbers)
+      (ess-fl-keyword:operators . t)
+      (ess-fl-keyword:delimiters . t)
+      (ess-fl-keyword:= . t)
+      (ess-R-fl-keyword:F&T . t))))
+     '(grep-find-command
+       (quote
+     ("find . -name '' -type f -exec grep -nH -e '' {} +" . 15)))
+     '(org-export-html-extension "html")
+     '(org-export-html-postamble-format (quote (("en" ""))))
+     '(org-export-html-preamble "")
+     '(org-export-htmlize-output-type (quote css)))
+
+    (add-hook 'diary-display-hook 'appt-make-list)
+
+  #+END_SRC
+
 
