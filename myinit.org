@@ -4276,3 +4276,36 @@
     ;;(global-font-lock-mode t) 
     ;;==========================================================================================
   #+END_SRC
+* Auto-completion
+  #+BEGIN_SRC emacs-lisp
+    ;; Start of the auto-completion for
+    ;; R========================================
+    ;;(add-to-list 'load-path "~/.emacs.d/elpa/auto-complete-20150408.1132")
+    ;;(require 'auto-complete)
+    (use-package auto-complete
+	:ensure t)
+    (global-auto-complete-mode t)
+    (add-to-list 'ac-modes 'ess-mode)
+    (add-to-list 'ac-modes 'R-mode)
+    (add-to-list 'ac-modes 'html-mode)
+    ;;ac-show-menu-immediately-on-auto-complete
+    ;; Show 0.8 second later
+    (setq ac-auto-show-menu 0.1)
+
+    ;;(add-to-list 'load-path "~/.emacs.d/autocomplete")
+    ;;(require 'auto-complete-config)
+    (use-package auto-complete-config
+	:ensure t)
+    ;;(add-to-list 'ac-dictionary-directories "~/.emacs.d/autocomplete/ac-dict")
+    ;;remove the following line to see if it is responsible for the freezing issue
+    ;;(add-to-list 'ac-dictionary-directories "~/.emacs.d/elpa/auto-complete-20150408.1132/dict")
+    (ac-config-default)
+
+    ;;turn the following off, as it freezes R
+    ;;(require 'ac-R)
+    ;;End of the auto-completion for R=======================================
+
+  #+END_SRC
+
+* 
+
