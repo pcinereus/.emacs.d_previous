@@ -2879,3 +2879,236 @@
    (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1)))
    )
    #+END_SRC
+* ESS
+
+** Part 1
+   #+BEGIN_SRC emacs-lisp
+       (use-package ess
+       :ensure t)
+
+       ;; prevent ess from replacing the underscore with a <-
+     (ess-toggle-underscore nil)
+
+     ;;ESS for Sweave files
+     (defun Rnw-mode ()
+			(require 'ess-noweb)
+			(noweb-mode)
+			(if (fboundp 'R-mode)
+               (setq noweb-default-code-mode 'R-mode)))
+          (add-to-list 'auto-mode-alist '("\\.rnw\\'" . Rnw-mode))
+          (add-to-list 'auto-mode-alist '("\\.Snw\\'" . Rnw-mode))
+          (setq reftex-file-extensions
+               '(("Snw" "rnw" "nw" "tex" ".tex" ".ltx") ("bib" ".bib")))
+          (setq TeX-file-extensions
+               '("Snw" "rnw" "nw" "tex" "sty" "cls" "ltx" "texi" "texinfo"))
+
+     ;;(global-set-key [f2] 'ess-eval-line-and-step)
+     (define-key ess-mode-map [f2] 'ess-eval-line-and-step)
+	 (defun start-new-r-process ()
+	  (interactive)
+	  (ess-request-a-process "" 0 0)
+	 )
+	 (global-set-key (kbd "S-<f2>") 'start-new-r-process)
+     (setq ess-ask-for-ess-directory nil)
+     (setq ess-local-process-name "R")
+     (setq ansi-color-for-comint-mode 'filter)
+
+     (defun my-ess-start-R ()
+         (interactive)
+         (if (not (member "*R*" (mapcar (function buffer-name) (buffer-list))))
+           (progn
+             (delete-other-windows)
+             (setq w1 (selected-window))
+             (setq w1name (buffer-name))
+             (setq w2 (split-window w1))
+             (R)
+             (set-window-buffer w2 "*R*")
+             (set-window-buffer w1 w1name))))
+
+     (defun eval-chunk ()
+       "This function marks and evaluates the current chunk"
+       (interactive)
+       ;; Get the current point
+       (setq pCurrent (point))
+       ;; Go back to chunk header
+       (re-search-backward "^```.*") (forward-line 1) (setq p1 (point))
+       (re-search-forward "^```") (forward-line -1) (setq p2 (line-end-position))
+       (ess-eval-region p1 p2 nil)
+       (goto-char pCurrent)
+     )
+
+
+     (defun eval-allAbove-R-regionsNoweb ()
+       "This function evaluates all R code within babel R tags above the current point"
+       (interactive)
+       (setq p3 (point))
+       ;; first work out if R is running and if not start it up in an inferior window
+       (my-ess-start-R)
+       (let ((total 0)(counti 1))
+             (setq p3 (point))
+             (setq p1 (point))
+             (beginning-of-buffer)
+             (while (<= (point) p3)
+               (re-search-forward "^<<.*>>=") (setq p1 (point))
+               ;;(re-search-forward "R") (setq p1 (point))
+               (if (< p3 p1) ()
+                     (re-search-forward "@") (re-search-backward "@") (setq p2 (point)) 
+                     (setq counti (point))
+                     (ess-eval-region p1 p2 nil)
+                     ;;(message "this is %d" p1)     
+                     ;;(message "Original is %d" p3)
+                     )
+               )
+             total
+             )
+       (goto-char p3)
+       )
+
+     (define-key ess-mode-map [f8] 'eval-allAbove-R-regionsNoweb)
+     (add-hook 'LaTeX-mode-hook
+                       #'(lambda ()
+                               (define-key LaTeX-mode-map [f8] 'eval-allAbove-R-regionsNoweb)))
+
+
+
+     ;; (add-hook 'ess-mode-hook (lambda()
+     ;;                                                 (set-face-attribute 'font-lock-comment-face nil
+     ;;                                                                                         :family "Optima" :height 100)
+     ;;                                                 )
+     ;;                )
+
+
+     ;; (add-hook 'LaTeX-mode-hook (lambda()
+     ;;                                                 (set-face-attribute 'font-lock-comment-face nil
+     ;;                                                                                         :family "Inconsolata" :height 100 :slant 'italic)
+     ;;                                                 )
+     ;;                )
+
+     ;; (add-hook 'tex-mode-hook (lambda()
+     ;;                                                 (set-face-attribute 'default nil
+     ;;                                                                                         :family "Optima" :height 100)
+     ;;                                                 )
+     ;;                )
+
+     ;; (add-hook 'ess-mode-hook
+     ;;           (lambda ()
+     ;;             (set (make-local-variable 'default-text-properties)
+     ;;                  '(face variable-pitch))))
+
+     ;;(add-hook 'ess-mode-hook 'turn-on-font-lock)
+
+     ;; (defun ess-font-lock-db ()
+     ;;   "Set font-lock colors (leave fore-/back-ground alone) courtesy David
+     ;; Brahm <address@hidden>"
+     ;;   (interactive)
+     ;;   (set-face-foreground 'font-lock-comment-face       "SpringGreen4")  ; #...
+     ;;   %...
+     ;;   (set-face-foreground 'font-lock-string-face        "SeaGreen")   ; "..."
+     ;;   "..."
+     ;;   (set-face-foreground 'font-lock-keyword-face       "MediumBlue") ; if
+     ;;   \end
+     ;;   (set-face-foreground 'font-lock-function-name-face "VioletRed")  ; talk<-
+     ;;   {center}
+     ;;   (set-face-foreground 'font-lock-variable-name-face "Blue")         ; xv
+     ;;   (set-face-foreground 'font-lock-type-face          "Goldenrod")  ; T,F
+     ;;   ?
+     ;;   (set-face-foreground 'font-lock-constant-face      "Magenta")    ; <-
+     ;;   {eq1}
+     ;;   )
+
+     ;; The following is modified from noweb-font-lock-mode.el
+     ;; so that we can highlight the R snippets within the rnw file
+     (defface noweb-font-lock-code-chunk-face
+       '((t (:family "Inconsolata" :background "#FFFFCC")))
+       "Face to highlight noweb code chunks")
+     (defface R-font-lock-doc-chunk-face
+       '((t (:family "Inconsolata" :background "#FFFFCC")))
+       "Face to highlight noweb doc chunks")
+     (defvar R-font-lock-code-chunk-face 'R-font-lock-code-chunk-face
+       "Face to use to highlight the first line of each code chunk (i.e. <<>>=)")
+     (defvar R-font-lock-doc-chunk-face 'R-font-lock-doc-chunk-face
+       "Face to use to highlight the first line of each doc chunk (i.e. @)")
+
+     (defface R-font-lock-code-chunk-face
+       '((t (:family "Inconsolata" :background "#FFFFCC")))
+       "Face to highlight noweb code chunks")
+     (defvar R-font-lock-code-chunk-face 'R-font-lock-code-chunk-face
+       "Face to use to highlight the first line of each code chunk (i.e. <<>>=)")
+
+
+     (defun noweb-font-lock-fontify-chunk-by-number ( chunk-num )
+       "Fontify chunk chunk-num based on the current major mode."
+       (save-excursion
+         (font-lock-set-defaults)
+         (setq old-beginning-of-syntax font-lock-beginning-of-syntax-function)
+         (setq font-lock-beginning-of-syntax-function 'noweb-start-of-syntax)
+         (setq font-lock-keywords
+               (append font-lock-keywords
+                       '(
+                             ("\\(\\[\\[\\)\\([^]]*\\]*\\)\\(\\]\\]\\|\\$\\)"
+                          (1 font-lock-reference-face prepend )
+                          (2 font-lock-keyword-face prepend)
+                          (3 font-lock-reference-face prepend))
+                             ("^[ \t\n]*<<\\([^>]+\\)>>"        ;; reuse code chunk
+                              (1 font-lock-keyword-face  prepend ))
+                             ("^\\(<<\\)\\([^>]*\\)\\(>>=\\)\\(\\(?:[\t][^\n]*\\)?\\)[\n]" ;; code chunk start
+                              (0 R-font-lock-code-chunk-face prepend )
+                          (1 font-lock-reference-face  prepend )
+                          (2 font-lock-keyword-face prepend)
+                          (3 font-lock-reference-face prepend)
+                              (4 font-lock-comment-face prepend))
+                             ("^@\\(\\(?:[ \t][^\n]*\\)?\\)[\n]" ;; doc chunk start
+                          (0 font-lock-reference-face prepend )
+                              (0 R-font-lock-doc-chunk-face prepend )
+                              (1 font-lock-comment-face prepend)
+                              )
+                             ;; ("^<<.*>>=.|\n]*"        ;; reuse code chunk
+                             ;;  (0 R-font-lock-code-chunk-face prepend ))
+                             )
+                       )
+               )
+         (let ((r (cons (marker-position (cdr (aref noweb-chunk-vector
+													chunk-num)))
+						(marker-position (cdr (aref noweb-chunk-vector
+													(1+ chunk-num)))))))
+           (font-lock-fontify-region (car r) (cdr r))
+           t)))
+     ;;End of the R highlighting stuff
+
+     ;; TRAMP requires that the local and report R program is the same - I think that by default ess has this either not set or else set for windows
+     ;;(setq inferior-R-program-name "/usr/local/R")
+
+     ;;View R data frames in libreoffice
+     (require 'ess-view)
+     (setq ess-view--spreadsheet-program "/usr/local/bin/libreoffice5.0")
+
+     ;; R help appears in its own frame
+     (setq ess-help-own-frame 'one)
+
+     (defun my-rdired-View (objname)
+       "View an object in its own buffer. Similar to `ess-rdired-View', but my taste."
+       (interactive "sEnter object name: ")
+       (ess-command "tmpwidth <- options('width')[[1]]\n")
+       (ess-command "options(width=9999)\n")
+       (ess-execute objname nil (concat "R view " objname ))
+       (ess-command "options(width=tmpwidth)\n")
+       (switch-to-buffer (concat "*R view " objname "*"))
+       (toggle-truncate-lines 1))
+
+   #+END_SRC
+
+** Part 2
+  #+BEGIN_SRC emacs-lisp
+    ;; If you want all help buffers to go into one frame do :
+    (setq ess-help-own-frame 'one)
+    (defun my-rdired-View (objname)
+      "View an object in its own buffer. Similar to `ess-rdired-View', but my taste."
+      (interactive "sEnter object name: ")
+      (ess-command "tmpwidth <- options('width')[[1]]\n")
+      (ess-command "options(width=9999)\n")
+      (ess-execute objname nil (concat "R view " objname ))
+      (ess-command "options(width=tmpwidth)\n")
+      (switch-to-buffer (concat "*R view " objname "*"))
+      (toggle-truncate-lines 1))
+  #+END_SRC
+   
