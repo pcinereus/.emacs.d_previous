@@ -4454,3 +4454,27 @@
 
 
 
+* Ace-jump-mode
+  #+BEGIN_SRC emacs-lisp
+    ;; ace-jump-mode (jumping around in buffers, between windows etc
+    (autoload
+      'ace-jump-mode
+      "ace-jump-mode"
+      "Emacs quick move minor mode"
+      t)
+    ;; you can select the key you prefer to
+    (define-key global-map (kbd "C-c SPC") 'ace-jump-mode)
+
+    (global-set-key (kbd "M-p") 'ace-window)
+    (setq aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))
+  #+END_SRC
+* Rebox
+  #+BEGIN_SRC emacs-lisp
+    ;; For putting fences around header info or comments
+    ;;(add-to-list 'load-path "~/.emacs.d/elpa/rebox2-20121113.500")
+    (require 'rebox2)
+    (global-set-key [(meta q)] 'rebox-dwin-fill)
+    (global-set-key [(shift meta q)] 'rebox-dwin-no-fill)
+    (rebox-mode 1)
+
+  #+END_SRC
