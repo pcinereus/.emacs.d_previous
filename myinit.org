@@ -4478,3 +4478,30 @@
     (rebox-mode 1)
 
   #+END_SRC
+
+* Calendar
+  #+BEGIN_SRC emacs-lisp
+  ;;Nicer calendar
+    (use-package calfw-cal
+	:ensure t)
+    (put 'narrow-to-region 'disabled nil)
+
+  #+END_SRC
+
+  #+BEGIN_SRC emacs-lisp
+    ;;Google calendar
+	(setq package-check-signature nil)
+
+	
+	(use-package org-gcal
+	:ensure t
+	:config
+	(setq org-gcal-client-id "418192318291-4jn5kpplepurelu8dn2o1qlmh89eulvb.apps.googleusercontent.com"
+	org-gcal-client-secret "nrfX0nVn4uqzoD3CEjy390ft"
+	org-gcal-file-alist '(("i.obesulus@gmail.com" .  "~/Dropbox/org/gcal.org"))))
+
+	;;sync to google calendar when load agenda
+	(add-hook 'org-agenda-mode-hook (lambda () (org-gcal-sync) ))
+	;;sync to google calendar when I capture
+	(add-hook 'org-capture-after-finalize-hook (lambda () (org-gcal-sync) ))
+  #+END_SRC
