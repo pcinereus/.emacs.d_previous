@@ -4472,7 +4472,8 @@
   #+BEGIN_SRC emacs-lisp
     ;; For putting fences around header info or comments
     ;;(add-to-list 'load-path "~/.emacs.d/elpa/rebox2-20121113.500")
-    (require 'rebox2)
+    (use-package rebox2
+	:ensure t)
     (global-set-key [(meta q)] 'rebox-dwin-fill)
     (global-set-key [(shift meta q)] 'rebox-dwin-no-fill)
     (rebox-mode 1)
