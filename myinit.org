@@ -4509,3 +4509,39 @@
     ;; ;;sync to google calendar when I capture
     ;; (add-hook 'org-capture-after-finalize-hook (lambda () (org-gcal-sync) ))
   #+END_SRC
+* CSV mode
+  #+BEGIN_SRC emacs-lisp
+      (use-package csv-mode
+	  :ensure t)
+      (add-to-list 'auto-mode-alist'("\\.csv" . csv-mode))
+  #+END_SRC
+
+
+* Arduino mode
+  #+BEGIN_SRC emacs-lisp
+      (use-package arduino-mode
+	  :ensure t)
+      (setq auto-mode-alist (cons '("\\.\\(pde\\|ino\\)$" . arduino-mode) auto-mode-alist))
+      (autoload 'arduino-mode "arduino-mode" "Arduino editing mode." t)
+
+  #+END_SRC
+
+* Snippets
+  #+BEGIN_SRC emacs-lisp
+      ;;Snippets
+    ;;(add-to-list 'load-path "~/.emacs.d/elpa/yasnippet-20150415.244")
+    (use-package yasnippet
+	:ensure t)
+    ;;(yas-global-mode 1)
+
+  #+END_SRC
+
+
+* PDF tools
+  #+BEGIN_SRC emacs-lisp
+  ;;pdf-tools (a complete replacement for dov-view for PDF)
+    ;; has brilliant editing etc
+    (pdf-tools-install)
+
+  #+END_SRC
+
