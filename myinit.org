@@ -4709,7 +4709,5 @@
 
 * Taskjuggler
   #+BEGIN_SRC emacs-lisp
-    (use-package ox-taskjuggler
-	:ensure t)
-
+    (require 'ox-taskjuggler)
   #+END_SRC
