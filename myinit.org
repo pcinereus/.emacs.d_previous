@@ -4694,3 +4694,22 @@
 
   #+END_SRC
 
+* Bookmark
+  #+BEGIN_SRC emacs-lisp
+  (use-package bm
+  :ensure t)
+  (global-set-key (kbd "<f8>") 'bm-toggle)
+  (global-set-key (kbd "<C-f8>")   'bm-show-all)
+  (global-set-key (kbd "<S-f8>")   'bm-show)
+  
+  (setq bm-cycle-all-buffers t)
+	
+  #+END_SRC
+
+
+* Taskjuggler
+  #+BEGIN_SRC emacs-lisp
+    (use-package ox-taskjuggler
+	:ensure t)
+
+  #+END_SRC
