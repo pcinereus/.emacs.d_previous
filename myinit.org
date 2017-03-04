@@ -4541,7 +4541,9 @@
   #+BEGIN_SRC emacs-lisp
   ;;pdf-tools (a complete replacement for dov-view for PDF)
     ;; has brilliant editing etc
-    (pdf-tools-install)
+  (use-package pdf-tools
+  :ensure t)
+    ;;(pdf-tools-install)
 
   #+END_SRC
 
