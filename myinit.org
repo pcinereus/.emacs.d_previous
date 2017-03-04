@@ -1893,10 +1893,10 @@
 
 ** Part 1
    #+BEGIN_SRC emacs-lisp
-     (use-package org
+     (use-package org-plus-contrib
        :ensure t)
 
-     (require 'org-install)
+     ;;(require 'org-install)
 
      ;; the following defines which languages work with org-mode for tangling etc
      (defun R-org-confirm-babel-evaluate (lang body)
@@ -1913,14 +1913,14 @@
      (org-babel-do-load-languages
       'org-babel-load-languages
       '((emacs-lisp . nil)
-		(ditaa . t)
-		(R . t)
-		(sh . t)
-		(latex . t)
-		(C . t)
-		(python . t)
-		;;(ipython . t)
-		))
+                (ditaa . t)
+                (R . t)
+                (sh . t)
+                (latex . t)
+                (C . t)
+                (python . t)
+                ;;(ipython . t)
+                ))
 
 
      (custom-set-variables
@@ -2004,7 +2004,7 @@
 
      ;; Define the list of org files that are in the agenda search path
      (setq org-agenda-files (list "~/Dropbox/org/work.org"
-	                              "~/Dropbox/org/gcal.org"
+                                      "~/Dropbox/org/gcal.org"
                                   "~/Dropbox/org/gtd.org"
                                   "~/Dropbox/org/stats.org"
                                   "~/Dropbox/org/AIMS.org"
@@ -2036,8 +2036,8 @@
 
      ;; Enable display of the time grid so we can see the marker for the current time
      (setq org-agenda-time-grid (quote ((daily today remove-match)
-										#("----------------" 0 16 (org-heading t))
-										(0700 0900 1100 1300 1500 1700 1900))))
+                                                                                #("----------------" 0 16 (org-heading t))
+                                                                                (0700 0900 1100 1300 1500 1700 1900))))
 
      ;; Display tags farther right
      (setq org-agenda-tags-column -80)
@@ -2052,23 +2052,23 @@
 
      (setq org-capture-templates
            (quote (("a" "Appointment" entry (file+datetree "~/Dropbox/org/gcal.org" )
-					"* %?\n\n\%^T\n\n:PROPERTIES:\n\n:END:\n\n")
-				   ("t" "todo" entry (file org-default-notes-file "Tasks")
-					"* TODO %?\t%^G\n\t%U\n\t%a\n" :clock-in t :clock-resume t)
+                                        "* %?\n\n\%^T\n\n:PROPERTIES:\n\n:END:\n\n")
+                                   ("t" "todo" entry (file org-default-notes-file "Tasks")
+                                        "* TODO %?\t%^G\n\t%U\n\t%a\n" :clock-in t :clock-resume t)
                    ("r" "respond" entry (file org-default-notes-file)
-					"* NEXT Respond to %:from on %:subject\nSCHEDULED: %t\n%U\n%a\n" :clock-in t :clock-resume t :immediate-finish t)
+                                        "* NEXT Respond to %:from on %:subject\nSCHEDULED: %t\n%U\n%a\n" :clock-in t :clock-resume t :immediate-finish t)
                    ("n" "note" entry (file org-default-notes-file)
-					"* %? :NOTE:\n\t%U\n\t%a\n" :clock-in t :clock-resume t)
+                                        "* %? :NOTE:\n\t%U\n\t%a\n" :clock-in t :clock-resume t)
                    ("j" "Journal" entry (file+datetree "~/Dropbox/org/diary.org")
-					"* %?\n\t%U\n" :clock-in t :clock-resume t)
+                                        "* %?\n\t%U\n" :clock-in t :clock-resume t)
                    ("w" "org-protocol" entry (file org-default-notes-file)
-					"* TODO Review %c\n%U\n" :immediate-finish t)
+                                        "* TODO Review %c\n%U\n" :immediate-finish t)
                    ("m" "Meeting" entry (file org-default-notes-file)
-					"* MEETING with %? :MEETING:\n%U" :clock-in t :clock-resume t)
+                                        "* MEETING with %? :MEETING:\n%U" :clock-in t :clock-resume t)
                    ("p" "Phone call" entry (file org-default-notes-file)
-					"* PHONE %? :PHONE:\n%U" :clock-in t :clock-resume t)
+                                        "* PHONE %? :PHONE:\n%U" :clock-in t :clock-resume t)
                    ("h" "Habit" entry (file org-default-notes-file)
-					"* NEXT %?\n%U\n%a\nSCHEDULED: %(format-time-string \"%<<%Y-%m-%d %a .+1d/3d>>\")\n:PROPERTIES:\n:STYLE: habit\n:REPEAT_TO_STATE: NEXT\n:END:\n"))))
+                                        "* NEXT %?\n%U\n%a\nSCHEDULED: %(format-time-string \"%<<%Y-%m-%d %a .+1d/3d>>\")\n:PROPERTIES:\n:STYLE: habit\n:REPEAT_TO_STATE: NEXT\n:END:\n"))))
 
 
                                              ; Targets include this file and any file contributing to the agenda - up to 9 levels deep
@@ -2137,34 +2137,34 @@
      (setq org-agenda-custom-commands
            (quote (
                                ("n" "Agenda and all TODOs"
-								((agenda "" nil)
+                                                                ((agenda "" nil)
                                      (alltodo "" nil))
-								nil)
+                                                                nil)
                                ("N" "Notes" tags "NOTE"
-					((org-agenda-overriding-header "Notes")
+                                        ((org-agenda-overriding-header "Notes")
                      (org-tags-match-list-sublevels t)))
                    ("h" "Habits" tags-todo "STYLE=\"habit\""
-					((org-agenda-overriding-header "Habits")
+                                        ((org-agenda-overriding-header "Habits")
                      (org-agenda-sorting-strategy
                       '(todo-state-down effort-up category-keep))))
                    (" " "Agenda"
-					((agenda "" nil)
+                                        ((agenda "" nil)
                      (tags "REFILE"
                            ((org-agenda-overriding-header "Tasks to Refile")
-							(org-tags-match-list-sublevels nil)))
+                                                        (org-tags-match-list-sublevels nil)))
                      (tags-todo "-CANCELLED/!"
-								((org-agenda-overriding-header "Stuck Projects")
+                                                                ((org-agenda-overriding-header "Stuck Projects")
                                  (org-agenda-skip-function 'bh/skip-non-stuck-projects)
                                  (org-agenda-sorting-strategy
                                   '(category-keep))))
                      (tags-todo "-HOLD-CANCELLED/!"
-								((org-agenda-overriding-header "Projects")
+                                                                ((org-agenda-overriding-header "Projects")
                                  (org-agenda-skip-function 'bh/skip-non-projects)
                                  (org-tags-match-list-sublevels 'indented)
                                  (org-agenda-sorting-strategy
                                   '(category-keep))))
                      (tags-todo "-CANCELLED/!NEXT"
-								((org-agenda-overriding-header (concat "Project Next Tasks"
+                                                                ((org-agenda-overriding-header (concat "Project Next Tasks"
                                                                        (if bh/hide-scheduled-and-waiting-next-tasks
                                                                            ""
                                                                          " (including WAITING and SCHEDULED tasks)")))
@@ -2176,7 +2176,7 @@
                                  (org-agenda-sorting-strategy
                                   '(todo-state-down effort-up category-keep))))
                      (tags-todo "-REFILE-CANCELLED-WAITING-HOLD/!"
-								((org-agenda-overriding-header (concat "Project Subtasks"
+                                                                ((org-agenda-overriding-header (concat "Project Subtasks"
                                                                        (if bh/hide-scheduled-and-waiting-next-tasks
                                                                            ""
                                                                          " (including WAITING and SCHEDULED tasks)")))
@@ -2187,7 +2187,7 @@
                                  (org-agenda-sorting-strategy
                                   '(category-keep))))
                      (tags-todo "-REFILE-CANCELLED-WAITING-HOLD/!"
-								((org-agenda-overriding-header (concat "Standalone Tasks"
+                                                                ((org-agenda-overriding-header (concat "Standalone Tasks"
                                                                        (if bh/hide-scheduled-and-waiting-next-tasks
                                                                            ""
                                                                          " (including WAITING and SCHEDULED tasks)")))
@@ -2198,7 +2198,7 @@
                                  (org-agenda-sorting-strategy
                                   '(category-keep))))
                      (tags-todo "-CANCELLED+WAITING|HOLD/!"
-								((org-agenda-overriding-header (concat "Waiting and Postponed Tasks"
+                                                                ((org-agenda-overriding-header (concat "Waiting and Postponed Tasks"
                                                                        (if bh/hide-scheduled-and-waiting-next-tasks
                                                                            ""
                                                                          " (including WAITING and SCHEDULED tasks)")))
@@ -2208,9 +2208,9 @@
                                  (org-agenda-todo-ignore-deadlines bh/hide-scheduled-and-waiting-next-tasks)))
                      (tags "-REFILE/"
                            ((org-agenda-overriding-header "Tasks to Archive")
-							(org-agenda-skip-function 'bh/skip-non-archivable-tasks)
-							(org-tags-match-list-sublevels nil))))
-					nil))))
+                                                        (org-agenda-skip-function 'bh/skip-non-archivable-tasks)
+                                                        (org-tags-match-list-sublevels nil))))
+                                        nil))))
 
      (defun bh/org-auto-exclude-function (tag)
        "Automatic task exclusion in the agenda with / RET"
@@ -2219,7 +2219,7 @@
               t)
              ((string= tag "farm")
               t))
-			(concat "-" tag)))
+                        (concat "-" tag)))
 
      (setq org-agenda-auto-exclude-function 'bh/org-auto-exclude-function)
 
@@ -2285,10 +2285,10 @@
        (when (not (and (boundp 'org-capture-mode) org-capture-mode))
          (cond
           ((and (member (org-get-todo-state) (list "TODO"))
-				(bh/is-task-p))
+                                (bh/is-task-p))
            "NEXT")
           ((and (member (org-get-todo-state) (list "NEXT"))
-				(bh/is-project-p))
+                                (bh/is-project-p))
            "TODO"))))
 
      (defun bh/find-project-task ()
@@ -2387,7 +2387,7 @@
                ((eq arg 4) org-clock-default-task)
                ((and (org-clock-is-active)
                      (equal org-clock-default-task (cadr org-clock-history)))
-				(caddr org-clock-history))
+                                (caddr org-clock-history))
                ((org-clock-is-active) (cadr org-clock-history))
                ((equal org-clock-default-task (car org-clock-history)) (cadr org-clock-history))
                (t (car org-clock-history)))))
@@ -2440,8 +2440,8 @@
                           (last-month (format-time-string "%Y-%m-" (time-subtract (current-time) (seconds-to-time a-month-ago))))
                           (this-month (format-time-string "%Y-%m-" (current-time)))
                           (subtree-is-current (save-excursion
-												(forward-line 1)
-												(and (< (point) subtree-end)
+                                                                                                (forward-line 1)
+                                                                                                (and (< (point) subtree-end)
                                                      (re-search-forward (concat last-month "\\|" this-month) subtree-end t)))))
                      (if subtree-is-current
                          subtree-end ; Has a date in this month or last month, skip it
@@ -2527,7 +2527,7 @@
        (load-library "reftex")
        ;;(and (buffer-file-name) (file-exists-p (buffer-file-name))
        (and (buffer-file-name) (string-equal (buffer-file-name) "/home/murray/Dropbox/org/references.org")
-			(progn
+                        (progn
                       ;;enable auto-revert-mode to update reftex when bibtex file changes on disk
                       (global-auto-revert-mode t)
                       (reftex-parse-all)
@@ -2691,11 +2691,11 @@
              (widen)
              (let ((subtree-end (save-excursion (org-end-of-subtree t))))
                (cond
-				((bh/is-project-p)
+                                ((bh/is-project-p)
                  nil)
-				((and (bh/is-project-subtree-p) (not (bh/is-task-p)))
+                                ((and (bh/is-project-subtree-p) (not (bh/is-task-p)))
                  nil)
-				(t
+                                (t
                  subtree-end))))
          (save-excursion (org-end-of-subtree t))))
 
@@ -2706,9 +2706,9 @@
          (widen)
          (let ((next-headline (save-excursion (or (outline-next-heading) (point-max)))))
            (cond
-			((bh/is-task-p)
+                        ((bh/is-task-p)
              nil)
-			(t
+                        (t
              next-headline)))))
 
      ;; (defun bh/skip-project-trees-and-habits ()
@@ -4482,27 +4482,30 @@
 
 * Calendar
   #+BEGIN_SRC emacs-lisp
-  ;;Nicer calendar
-    (use-package calfw-cal
-	:ensure t)
-    (put 'narrow-to-region 'disabled nil)
+    ;; ;;Nicer calendar
+    ;; (use-package calfw
+    ;;           :ensure t
+    ;;           :config
+    ;;           (require 'calfw-cal)
+    ;;           )
+    ;; (put 'narrow-to-region 'disabled nil)
 
   #+END_SRC
 
   #+BEGIN_SRC emacs-lisp
-    ;;Google calendar
-	(setq package-check-signature nil)
+    ;; ;;Google calendar
+    ;; (setq package-check-signature nil)
 
-	
-	(use-package org-gcal
-	:ensure t
-	:config
-	(setq org-gcal-client-id "418192318291-4jn5kpplepurelu8dn2o1qlmh89eulvb.apps.googleusercontent.com"
-	org-gcal-client-secret "nrfX0nVn4uqzoD3CEjy390ft"
-	org-gcal-file-alist '(("i.obesulus@gmail.com" .  "~/Dropbox/org/gcal.org"))))
 
-	;;sync to google calendar when load agenda
-	(add-hook 'org-agenda-mode-hook (lambda () (org-gcal-sync) ))
-	;;sync to google calendar when I capture
-	(add-hook 'org-capture-after-finalize-hook (lambda () (org-gcal-sync) ))
+    ;; (use-package org-gcal
+    ;;           :ensure t
+    ;;           :config
+    ;;           (setq org-gcal-client-id "418192318291-4jn5kpplepurelu8dn2o1qlmh89eulvb.apps.googleusercontent.com"
+    ;;                 org-gcal-client-secret "nrfX0nVn4uqzoD3CEjy390ft"
+    ;;                 org-gcal-file-alist '(("i.obesulus@gmail.com" .  "~/Dropbox/org/gcal.org"))))
+
+    ;; ;;sync to google calendar when load agenda
+    ;; (add-hook 'org-agenda-mode-hook (lambda () (org-gcal-sync) ))
+    ;; ;;sync to google calendar when I capture
+    ;; (add-hook 'org-capture-after-finalize-hook (lambda () (org-gcal-sync) ))
   #+END_SRC
