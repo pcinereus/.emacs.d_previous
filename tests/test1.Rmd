@@ -1,0 +1,27 @@
+This is a test R markdown file to explore emacs settings
+
+## Section header
+
+### Subsection header
+
+```{r loadLibraries}
+library(ggplot2)
+library(dplyr)
+source('functions.R')
+```
+
+## Another section header
+
+```{r dataPrep}
+iris %>% group_by(Species) %>% summarise(Mean=mean(Petal.Length))
+```
+
+This would be followed by an analysis
+
+- fit model
+- summarize model
+
+```{r model}
+iris.lm = lm(Petal.Length ~ Species, data=iris)
+summary(iris.lm)
+```
